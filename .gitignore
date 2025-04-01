@@ -26,6 +26,9 @@ seeders/
 dist/
 types/
 
+# Configuration files
+config/config.js
+
 # Operating system files
 .DS_Store
 Thumbs.db
@@ -44,3 +47,18 @@ coverage/
 
 # Build artifacts
 build/
+
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettiercache
+
+# npm package lock files
+package-lock.json
+yarn.lock
+
+# MacOS system files
+._*
+.Spotlight-V100
+.Trashes

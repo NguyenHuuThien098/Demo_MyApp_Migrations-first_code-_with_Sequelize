@@ -4,7 +4,8 @@ export default (sequelize: Sequelize): typeof Model => {
   class Shipper extends Model {
     public id!: number;
     public Name!: string;
-    //shpper code : number !=
+    public shipper_code!: number; // Thêm trường shipper_code
+
     static associate(models: any) {
       models.Shipper.hasMany(models.Order, { foreignKey: 'ShipperId' });
     }
@@ -13,6 +14,11 @@ export default (sequelize: Sequelize): typeof Model => {
   Shipper.init(
     {
       Name: DataTypes.STRING,
+      shipper_code: {
+        type: DataTypes.INTEGER,
+        unique: true, // Đảm bảo không trùng nhau
+        allowNull: false, // Không được để trống
+      },
     },
     {
       sequelize,

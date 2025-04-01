@@ -1,5 +1,7 @@
 import express from 'express';
 import { getCustomers, getCustomer } from './controller/customer/customerController';
+import { getShippers } from './controller/shipper/shipperController';
+import { getProducts } from './controller/product/productController';
 import db from './config/database';
 
 const app = express();
@@ -20,6 +22,8 @@ db.authenticate()
 // Routes
 app.get('/customers', getCustomers); // Lấy danh sách khách hàng
 app.get('/customers/:id', getCustomer); // Lấy thông tin khách hàng theo ID
+app.get('/shippers', getShippers); // Lấy danh sách Shippers
+app.get('/products', getProducts); // Lấy danh sách Products
 
 // Khởi động server
 app.listen(PORT, () => {
