@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "ES2020",                               // Cập nhật phiên bản JavaScript đầu ra
+    "module": "commonjs",                             // Sử dụng module CommonJS
+    "strict": true,                                   // Bật chế độ kiểm tra nghiêm ngặt
+    "esModuleInterop": true,                          // Hỗ trợ import/export ES6
+    "forceConsistentCasingInFileNames": true,         // Đảm bảo đúng kiểu chữ trong import
+    "resolveJsonModule": true,                        // Hỗ trợ import file JSON
+    "skipLibCheck": true,                             // Bỏ qua kiểm tra kiểu trong file .d.ts
+
+    /* Modules */
+    "rootDir": "./src",                               // Thư mục chứa mã nguồn TypeScript
+    "outDir": "./dist",                               // Thư mục chứa file JavaScript sau khi compile
+    
+    /* Emit */
+    "declaration": true,                              // Tạo file .d.ts cho các module
+    "declarationDir": "./types",
+    "sourceMap": true,                                // Tạo file source map để debug
+
+    /* Type Checking */
+    "strictNullChecks": true,                         // Kiểm tra null và undefined
+    "noImplicitAny": true,                            // Không cho phép kiểu `any` ngầm định
+    "noUnusedLocals": true,                           // Báo lỗi nếu có biến cục bộ không sử dụng
+    "noUnusedParameters": true,                       // Báo lỗi nếu có tham số không sử dụng
+    "noImplicitReturns": true,                        // Báo lỗi nếu hàm không trả về giá trị rõ ràng
+    "noFallthroughCasesInSwitch": true,               // Báo lỗi nếu có case không break trong switch
+
+    /* Additional Options */
+    "moduleResolution": "node",                       // Sử dụng cách resolve module của Node.js
+    "allowSyntheticDefaultImports": true,             // Cho phép import mặc định từ module không có export default
+    "experimentalDecorators": true,                   // Hỗ trợ decorator (nếu cần)
+    "emitDecoratorMetadata": true                     // Phát sinh metadata cho decorator
+  },
+  "include": ["src/**/*"],                            // Bao gồm tất cả file trong thư mục src
+  "exclude": ["node_modules", "dist", "types"]                 // Loại trừ các thư mục không cần thiết
+}
