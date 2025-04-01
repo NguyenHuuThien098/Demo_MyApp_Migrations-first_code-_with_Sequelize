@@ -4,7 +4,7 @@ export default (sequelize: Sequelize): typeof Model => {
   class Shipper extends Model {
     public id!: number;
     public Name!: string;
-
+    //shpper code : number !=
     static associate(models: any) {
       models.Shipper.hasMany(models.Order, { foreignKey: 'ShipperId' });
     }

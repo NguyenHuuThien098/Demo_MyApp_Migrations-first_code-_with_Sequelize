@@ -1,20 +1,22 @@
 import fs from 'fs';
 import path from 'path';
 import { Sequelize } from 'sequelize';
-import configFile from '../config/config.json';
+import dotenv from 'dotenv';
+
+// Load biến môi trường từ file .env
+dotenv.config();
 
 const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || 'development';
-const config = (configFile as any)[env];
 const db: any = {};
 
+// Khởi tạo Sequelize với thông tin từ .env
 const sequelize = new Sequelize(
-  config.database,
-  config.username,
-  config.password,
+  process.env.DB_DATABASE as string,
+  process.env.DB_USERNAME as string,
+  process.env.DB_PASSWORD as string,
   {
-    host: config.host,
-    dialect: config.dialect as any,
+    host: process.env.DB_HOST,
+    dialect: process.env.DB_DIALECT as any,
   }
 );
 

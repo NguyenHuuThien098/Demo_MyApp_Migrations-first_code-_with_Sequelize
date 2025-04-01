@@ -1,25 +1,14 @@
 import { Sequelize } from 'sequelize';
-import configFile from './config.json';
-
-const env = process.env.NODE_ENV || 'development';
-const config = (configFile as any)[env];
+import dotenv from "dotenv";
+dotenv.config();
 
 const sequelize = new Sequelize(
-  config.database,
-  config.username,
-  config.password,
-  config
-);
-
-const connectDatabase = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log('Database connection has been established successfully.');
-  } catch (error) {
-    console.error('Unable to connect to the database:', error);
-    process.exit(1); // Thoát nếu không kết nối được
+  process.env.DB_DATABASE as string,
+  process.env.DB_USERNAME as string,
+  process.env.DB_PASSWORD as string,
+  {
+    host: process.env.DB_HOST,
+    dialect: process.env.DB_DIALECT as any,
   }
-};
-
-export default connectDatabase;
-export { sequelize };
+);
+export default sequelize;

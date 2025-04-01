@@ -1,10 +1,5 @@
 import express from 'express';
-import connectDatabase from './config/database';
-import db from './models';
-
-const Customer = db.Customer;
-const Product = db.Product;
-
+import db from './models'; // Import models để kết nối cơ sở dữ liệu
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -13,12 +8,19 @@ const PORT = process.env.PORT || 8080;
 app.use(express.json());
 
 // Kết nối cơ sở dữ liệu
-connectDatabase();
+db.sequelize
+  .authenticate()
+  .then(() => {
+    console.log('Database connected successfully.');
+  })
+  .catch((err: any) => {
+    console.error('Unable to connect to the database:', err);
+  });
 
 // API: Lấy danh sách khách hàng
 app.get('/customers', async (_, res) => {
   try {
-    const customers = await Customer.findAll();
+    const customers = await db.Customer.findAll();
     res.json(customers);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -28,18 +30,8 @@ app.get('/customers', async (_, res) => {
 // API: Lấy danh sách sản phẩm
 app.get('/products', async (_, res) => {
   try {
-    const products = await Product.findAll();
+    const products = await db.Product.findAll();
     res.json(products);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// API: Tạo khách hàng mới
-app.post('/customers', async (req, res) => {
-  try {
-    const customer = await Customer.create(req.body);
-    res.status(201).json(customer);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
