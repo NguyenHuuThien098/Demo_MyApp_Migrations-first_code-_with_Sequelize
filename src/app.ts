@@ -1,5 +1,6 @@
 import express from 'express';
-import db from './models'; // Import models để kết nối cơ sở dữ liệu
+import { getCustomers, getCustomer } from './controller/customer/customerController';
+import db from './config/database';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -8,8 +9,7 @@ const PORT = process.env.PORT || 8080;
 app.use(express.json());
 
 // Kết nối cơ sở dữ liệu
-db.sequelize
-  .authenticate()
+db.authenticate()
   .then(() => {
     console.log('Database connected successfully.');
   })
@@ -17,25 +17,9 @@ db.sequelize
     console.error('Unable to connect to the database:', err);
   });
 
-// API: Lấy danh sách khách hàng
-app.get('/customers', async (_, res) => {
-  try {
-    const customers = await db.Customer.findAll();
-    res.json(customers);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// API: Lấy danh sách sản phẩm
-app.get('/products', async (_, res) => {
-  try {
-    const products = await db.Product.findAll();
-    res.json(products);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// Routes
+app.get('/customers', getCustomers); // Lấy danh sách khách hàng
+app.get('/customers/:id', getCustomer); // Lấy thông tin khách hàng theo ID
 
 // Khởi động server
 app.listen(PORT, () => {

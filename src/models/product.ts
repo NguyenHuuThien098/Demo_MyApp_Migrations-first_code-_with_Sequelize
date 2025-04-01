@@ -11,7 +11,7 @@ export default (sequelize: Sequelize): typeof Model => {
       models.Product.hasMany(models.OrderDetail, { foreignKey: 'ProductId' });
     }
   }
-  // them cuot emtyti
+  // them cot emtyti
   Product.init(
     {
       Name: DataTypes.STRING,
