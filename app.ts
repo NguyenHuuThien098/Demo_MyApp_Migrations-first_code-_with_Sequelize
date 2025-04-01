@@ -1,6 +1,10 @@
-const express = require('express');
-const connectDatabase = require('./config/database');
-const { Customer, Product } = require('./models');
+import express from 'express';
+import connectDatabase from './config/database';
+import db from './models';
+
+const Customer = db.Customer;
+const Product = db.Product;
+
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -12,21 +16,21 @@ app.use(express.json());
 connectDatabase();
 
 // API: Lấy danh sách khách hàng
-app.get('/customers', async (req, res) => {
+app.get('/customers', async (_, res) => {
   try {
     const customers = await Customer.findAll();
     res.json(customers);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 // API: Lấy danh sách sản phẩm
-app.get('/products', async (req, res) => {
+app.get('/products', async (_, res) => {
   try {
     const products = await Product.findAll();
     res.json(products);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -36,7 +40,7 @@ app.post('/customers', async (req, res) => {
   try {
     const customer = await Customer.create(req.body);
     res.status(201).json(customer);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
