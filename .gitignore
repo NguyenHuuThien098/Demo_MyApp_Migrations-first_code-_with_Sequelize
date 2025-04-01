@@ -22,6 +22,10 @@ yarn-error.log*
 migrations/
 seeders/
 
+# Compiled TypeScript files
+dist/
+types/
+
 # Operating system files
 .DS_Store
 Thumbs.db
@@ -30,3 +34,13 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Temporary files
+*.tmp
+*.temp
+
+# Test coverage files
+coverage/
+
+# Build artifacts
+build/
