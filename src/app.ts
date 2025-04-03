@@ -1,8 +1,11 @@
 import express from 'express';
-import { getCustomers, getCustomer } from './controller/customer/customerController';
-import { getShippers } from './controller/shipper/shipperController';
-import { getProducts } from './controller/product/productController';
+import productRoutes from './routes/productRoutes';
+import shipperRoutes from './routes/shipperRoutes';
+import customerRoutes from './routes/customerRoutes';
+import orderRoutes from './routes/orderRoutes';
+import orderDetailRoutes from './routes/orderDetailRoutes';
 import db from './config/database';
+
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -20,10 +23,11 @@ db.authenticate()
   });
 
 // Routes
-app.get('/customers', getCustomers); // Lấy danh sách khách hàng
-app.get('/customers/:id', getCustomer); // Lấy thông tin khách hàng theo ID
-app.get('/shippers', getShippers); // Lấy danh sách Shippers
-app.get('/products', getProducts); // Lấy danh sách Products
+app.use('/products',productRoutes);
+app.use('/shippers',shipperRoutes);
+app.use('/customers', customerRoutes);
+app.use('/orders', orderRoutes);
+app.use('/orderdetails',orderDetailRoutes);
 
 // Khởi động server
 app.listen(PORT, () => {
