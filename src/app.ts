@@ -27,7 +27,7 @@ app.use('/products',productRoutes);
 app.use('/shippers',shipperRoutes);
 app.use('/customers', customerRoutes);
 app.use('/orders', orderRoutes);
-app.use('/orderdetails',orderDetailRoutes);
+app.use('/orderdetails', orderDetailRoutes);
 
 // Khởi động server
 app.listen(PORT, () => {

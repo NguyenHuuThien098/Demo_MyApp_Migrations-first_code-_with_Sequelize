@@ -3,6 +3,7 @@ import {
     fetchOrderDetailById,
     createOrderDetail,
     deleteOrderDetailById,
+    fetchOrderDetailsByOrderId
 } from '../repository/orderDetailRepository';
 
 export const getAllOrderDetailsService = async () => {
@@ -19,4 +20,8 @@ export const createOrderDetailService = async (orderDetailData: any) => {
 
 export const deleteOrderDetailByIdService = async (id: number) => {
     return await deleteOrderDetailById(id);
+};
+
+export const fetchOrderDetailsByOrderIdService = async (orderId: number) => {
+    return await fetchOrderDetailsByOrderId(orderId);
 };

@@ -4,6 +4,7 @@ import {
   getOrderDetailByIdService,
   createOrderDetailService,
   deleteOrderDetailByIdService,
+  fetchOrderDetailsByOrderIdService,
 } from '../../services/orderDetailService';
 
 export const getOrderDetails = async (_: Request, res: Response): Promise<void> => {
@@ -47,5 +48,21 @@ export const deleteOrderDetailById = async (req: Request, res: Response): Promis
     res.status(204).send();
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+export const getOrderDetailsByOrderId = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const orderId = Number(req.params.orderId); // Lấy OrderId từ URL
+    const orderDetails = await fetchOrderDetailsByOrderIdService(orderId); // Gọi service để lấy dữ liệu
+
+    if (!orderDetails || orderDetails.length === 0) {
+      res.status(404).json({ error: 'No order details found for the given OrderId' });
+      return;
+    }
+
+    res.json(orderDetails); 
+  } catch (error: any) {
+    res.status(500).json({ error: error.message }); 
   }
 };
