@@ -6,6 +6,9 @@ export default (sequelize: Sequelize):typeof Model => {
     public name!: string;
     public contactName!: string;
     public country!: string;
+    static associate(models: any) {
+      models.Customer.hasMany(models.Order, { foreignKey: 'CustomerId' });
+    }
   }
 
   Customer.init(

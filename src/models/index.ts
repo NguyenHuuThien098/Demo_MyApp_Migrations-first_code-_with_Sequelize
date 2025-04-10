@@ -26,7 +26,7 @@ fs.readdirSync(__dirname)
     return (
       file.indexOf('.') !== 0 &&
       file !== basename &&
-      file.slice(-3) === '.ts' // Hoặc '.js' nếu bạn đang chạy từ thư mục dist
+      file.slice(-3) === '.ts'
     );
   })
   .forEach((file) => {
