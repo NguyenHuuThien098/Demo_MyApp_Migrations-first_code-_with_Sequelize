@@ -22,4 +22,9 @@ export class CustomerService {
   public async deleteCustomerById(id: number) {
     return await this.customerRepository.deleteCustomerById(id); // Xóa khách hàng theo ID
   }
+
+  public async fetchTopCustomerByCountry(){
+    return await this.customerRepository.fetchTopCustomerByCountry();
+  }
+  
 }

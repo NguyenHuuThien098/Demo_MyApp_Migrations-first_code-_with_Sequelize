@@ -26,6 +26,7 @@ const customerController = new CustomerController();
 // Định nghĩa các route cho Customers
 // TĨNH
 router.get('/', customerController.getCustomers.bind(customerController)); // Lấy tất cả khách hàng
+router.get('/top-by-country', customerController.getTopCustomerByCountry.bind(customerController)); //
 
 // ĐỘNG
 router.get('/:id', customerController.getCustomer.bind(customerController)); // Lấy khách hàng theo ID

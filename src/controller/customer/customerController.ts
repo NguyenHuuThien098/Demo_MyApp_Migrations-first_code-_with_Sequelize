@@ -65,4 +65,13 @@ export class CustomerController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  public async getTopCustomerByCountry(_: Request, res: Response): Promise<void> {
+    try {
+      const topCustomers = await this.customerService.fetchTopCustomerByCountry();
+      res.json(topCustomers);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
