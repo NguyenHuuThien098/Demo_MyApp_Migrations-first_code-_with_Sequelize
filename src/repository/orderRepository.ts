@@ -92,32 +92,17 @@ export class OrderRepository {
 
   public async fetchSecondHighestOrderDaysPerMonth() {
     const query = `
-      WITH monthly_order_counts AS (
-          SELECT 
-              DATE(OrderDate) AS orderDate,
-              MONTH(OrderDate) AS month,
-              YEAR(OrderDate) AS year,
-              COUNT(*) AS orderCount
-          FROM Orders
-          GROUP BY DATE(OrderDate), MONTH(OrderDate), YEAR(OrderDate)
-      ),
-      ranked_orders AS (
-          SELECT 
-              orderDate,
-              month,
-              year,
-              orderCount,
-              RANK() OVER (PARTITION BY year, month ORDER BY orderCount DESC) AS \`rank\`
-          FROM monthly_order_counts
-      )
-      SELECT 
-          orderDate,
-          month,
-          year,
-          orderCount
-      FROM ranked_orders
-      WHERE \`rank\` = 2
-      ORDER BY year, month;
+      SELECT OrderDate, COUNT(orders.id) AS OrderCount
+      FROM Orders
+      GROUP BY OrderDate
+      HAVING COUNT(*) = (
+          SELECT COUNT(*)
+          FROM Orders AS O
+          WHERE MONTH(O.OrderDate) = MONTH(Orders.OrderDate)
+          GROUP BY O.OrderDate
+          ORDER BY COUNT(*) DESC
+          LIMIT 1 OFFSET 1
+      );
     `;
     return await sequelize.query(query, { type: QueryTypes.SELECT });
   }
@@ -208,4 +193,5 @@ export class OrderRepository {
 
     return await sequelize.query(query, { type: QueryTypes.SELECT });
   }
+
 }
