@@ -1,108 +1,114 @@
 import { Request, Response } from 'express';
-import { fetchAllProductsService, fetchProductByIdService,createProductService,
-  deleteProductByIdService,
-  updateProductByIdService,
-  fetchTopProductsInQ1Service,
-  fetchTopProductsByQuarterService
-} from '../../services/productService';
+import { ProductService } from '../../services/productService';
 
-export const getProducts = async (_: Request, res: Response): Promise<void> => {
-  try {
-    const products = await fetchAllProductsService();
-    res.json(products);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
+export class ProductController {
+  private productService: ProductService;
+
+  constructor() {
+    this.productService = new ProductService();
   }
-};
 
-export const getProductById = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const productId = Number(req.params.id);
-
-    // Kiểm tra nếu productId không phải là số hợp lệ
-    if (isNaN(productId)) {
-      res.status(400).json({ error: 'Invalid product ID. It must be a number.' });
-      return;
+  public async getProducts(_: Request, res: Response): Promise<void> {
+    try {
+      const products = await this.productService.fetchAllProducts();
+      res.json(products);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
+  }
 
-    const product = await fetchProductByIdService(productId);
+  public async getProductById(req: Request, res: Response): Promise<void> {
+    try {
+      const productId = Number(req.params.id);
+      if (isNaN(productId)) {
+        res.status(400).json({ error: 'Invalid product ID. It must be a number.' });
+        return;
+      }
 
-    if (!product) {
-      res.status(404).json({ error: 'Product not found' });
-      return;
+      const product = await this.productService.fetchProductById(productId);
+      if (!product) {
+        res.status(404).json({ error: 'Product not found' });
+        return;
+      }
+
+      res.json(product);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
-
-    res.json(product);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
   }
-};
-export const createProduct = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const product = await createProductService(req.body);
-    res.status(201).json(product);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-};
 
-// Xóa sản phẩm theo ID
-export const deleteProductById = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const productId = Number(req.params.id);
-    const deleted = await deleteProductByIdService(productId);
-
-    if (!deleted) {
-      res.status(404).json({ error: 'Product not found' });
-      return;
+  public async createProduct(req: Request, res: Response): Promise<void> {
+    try {
+      const product = await this.productService.createProduct(req.body);
+      res.status(201).json(product);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
-
-    res.status(204).send();
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
   }
-};
 
-// Sửa sản phẩm theo ID
-export const updateProductById = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const productId = Number(req.params.id);
-    const [updatedCount, updatedProducts] = await updateProductByIdService(productId, req.body);
+  public async deleteProductById(req: Request, res: Response): Promise<void> {
+    try {
+      const productId = Number(req.params.id);
+      const deleted = await this.productService.deleteProductById(productId);
 
-    if (updatedCount === 0) {
-      res.status(404).json({ error: 'Product not found' });
-      return;
+      if (!deleted) {
+        res.status(404).json({ error: 'Product not found' });
+        return;
+      }
+
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
-
-    res.json(updatedProducts[0]); // Trả về sản phẩm đã được cập nhật
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
   }
-};
 
-export const getTopProductsInQ1 = async (_: Request, res: Response): Promise<void> => {
-  try {
-    const topProducts = await fetchTopProductsInQ1Service(); // Gọi service để lấy dữ liệu
-    res.json(topProducts); // Trả về danh sách sản phẩm
-  } catch (error: any) {
-    res.status(500).json({ error: error.message }); // Xử lý lỗi
-  }
-};
+  public async updateProductById(req: Request, res: Response): Promise<void> {
+    try {
+      const productId = Number(req.params.id);
+      const [updatedCount, updatedProducts] = await this.productService.updateProductById(productId, req.body);
 
-export const getTopProductsByQuarter = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const quarter = Number(req.query.quarter); // Lấy giá trị quý từ query parameter
+      if (updatedCount === 0) {
+        res.status(404).json({ error: 'Product not found' });
+        return;
+      }
 
-    // Kiểm tra nếu quarter không hợp lệ
-    if (isNaN(quarter) || quarter < 1 || quarter > 4) {
-      res.status(400).json({ error: 'Invalid quarter. Please provide a value between 1 and 4.' });
-      return;
+      res.json(updatedProducts[0]);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
-
-    const topProducts = await fetchTopProductsByQuarterService(quarter); // Gọi service để lấy dữ liệu
-    res.json(topProducts); // Trả về danh sách sản phẩm
-  } catch (error: any) {
-    console.error('Error fetching top products by quarter:', error);
-    res.status(500).json({ error: error.message }); // Xử lý lỗi
   }
-};
+
+  public async getTopProductsInQ1(_: Request, res: Response): Promise<void> {
+    try {
+      const topProducts = await this.productService.fetchTopProductsInQ1();
+      res.json(topProducts);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  public async getTopProductsByQuarter(req: Request, res: Response): Promise<void> {
+    try {
+      const quarter = Number(req.query.quarter);
+      if (isNaN(quarter) || quarter < 1 || quarter > 4) {
+        res.status(400).json({ error: 'Invalid quarter. Please provide a value between 1 and 4.' });
+        return;
+      }
+
+      const topProducts = await this.productService.fetchTopProductsByQuarter(quarter);
+      res.json(topProducts);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  public async getProductsNeverOrdered(_: Request, res: Response): Promise<void> {
+    try {
+      const products = await this.productService.fetchProductsNeverOrdered();
+      res.json(products);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+}

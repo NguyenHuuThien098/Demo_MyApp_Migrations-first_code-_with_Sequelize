@@ -1,40 +1,44 @@
-import {
-  fetchAllProducts, fetchProductById, createProduct, deleteProductById,
-  updateProductById,
-  fetchTopProductsInQ1,
-  fetchTopProductsByQuarter
-} from '../repository/productRepository';
+import { ProductRepository } from '../repository/productRepository';
 
-export const fetchAllProductsService = async () => {
-  return await fetchAllProducts(); // Gọi repository để lấy dữ liệu
-};
+export class ProductService {
+  private productRepository: ProductRepository;
 
-export const fetchProductByIdService = async (id: number) => {
-  return await fetchProductById(id); // Lấy sản phẩm theo id
+  constructor() {
+    this.productRepository = new ProductRepository();
+  }
+
+  public async fetchAllProducts() {
+    return await this.productRepository.fetchAllProducts();
+  }
+
+  public async fetchProductById(id: number) {
+    return await this.productRepository.fetchProductById(id);
+  }
+
+  public async createProduct(productData: any) {
+    return await this.productRepository.createProduct(productData);
+  }
+
+  public async deleteProductById(id: number) {
+    return await this.productRepository.deleteProductById(id);
+  }
+
+  public async updateProductById(id: number, productData: any) {
+    return await this.productRepository.updateProductById(id, productData);
+  }
+
+  public async fetchTopProductsInQ1() {
+    return await this.productRepository.fetchTopProductsInQ1();
+  }
+
+  public async fetchTopProductsByQuarter(quarter: number) {
+    const startMonth = (quarter - 1) * 3 + 1;
+    const endMonth = startMonth + 2;
+    return await this.productRepository.fetchTopProductsByQuarter(startMonth, endMonth);
+  }
+
+
+  public async fetchProductsNeverOrdered() {
+    return await this.productRepository.fetchProductsNeverOrdered();
+  }
 }
-
-export const createProductService = async (productData: any) => {
-  return await createProduct(productData);
-};
-
-// Xóa sản phẩm theo ID
-export const deleteProductByIdService = async (id: number) => {
-  return await deleteProductById(id);
-};
-
-// Sửa sản phẩm theo ID
-export const updateProductByIdService = async (id: number, productData: any) => {
-  return await updateProductById(id, productData);
-};
-
-export const fetchTopProductsInQ1Service = async () => {
-  return await fetchTopProductsInQ1(); // Gọi repository để lấy danh sách sản phẩm có doanh số cao nhất trong quý 1
-};
-
-export const fetchTopProductsByQuarterService = async (quarter: number) => {
-  // Tính toán tháng bắt đầu và kết thúc dựa trên quý
-  const startMonth = (quarter - 1) * 3 + 1; // Tháng bắt đầu của quý
-  const endMonth = startMonth + 2; // Tháng kết thúc của quý
-
-  return await fetchTopProductsByQuarter(startMonth, endMonth); // Gọi repository để lấy dữ liệu
-};

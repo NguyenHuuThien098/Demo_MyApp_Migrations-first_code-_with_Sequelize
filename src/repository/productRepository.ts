@@ -2,60 +2,72 @@ import { QueryTypes } from 'sequelize';
 import db from '../models';
 
 const sequelize = db.sequelize;
-
 const Product = db.Product;
 
-export const fetchAllProducts = async () => {
-  return await Product.findAll(); 
-};
+export class ProductRepository {
+  public async fetchAllProducts() {
+    return await Product.findAll();
+  }
 
-export const fetchProductById = async (id: number) => {
-  return await Product.findByPk(id);
-};
+  public async fetchProductById(id: number) {
+    return await Product.findByPk(id);
+  }
 
-export const createProduct = async (productData: any) => {
-  return await Product.create(productData);
-};
+  public async createProduct(productData: any) {
+    return await Product.create(productData);
+  }
 
-export const deleteProductById = async (id: number) => {
-  return await Product.destroy({ where: { id } });
-};
+  public async deleteProductById(id: number) {
+    return await Product.destroy({ where: { id } });
+  }
 
-export const updateProductById = async (id: number, productData: any) => {
-  return await Product.update(productData, { where: { id }, returning: true });
-};
+  public async updateProductById(id: number, productData: any) {
+    return await Product.update(productData, { where: { id }, returning: true });
+  }
 
-export const fetchTopProductsInQ1 = async () => {
-  const query = `
-    SELECT 
-        Products.Name AS ProductName, 
-        SUM(OrderDetails.Quantity * OrderDetails.Price) AS TotalSales
-    FROM Products
-    JOIN OrderDetails ON Products.id = OrderDetails.ProductId
-    JOIN Orders ON OrderDetails.OrderId = Orders.id
-    WHERE MONTH(Orders.OrderDate) BETWEEN 3 AND 4 -- Quý đầu tiên của năm
-    GROUP BY Products.Name
-    ORDER BY TotalSales DESC;
-  `;
+  public async fetchTopProductsInQ1() {
+    const query = `
+      SELECT 
+          Products.Name AS ProductName, 
+          SUM(OrderDetails.Quantity * OrderDetails.Price) AS TotalSales
+      FROM Products
+      JOIN OrderDetails ON Products.id = OrderDetails.ProductId
+      JOIN Orders ON OrderDetails.OrderId = Orders.id
+      WHERE MONTH(Orders.OrderDate) BETWEEN 1 AND 3
+      GROUP BY Products.Name
+      ORDER BY TotalSales DESC;
+    `;
+    return await sequelize.query(query, { type: QueryTypes.SELECT });
+  }
 
-  return await sequelize.query(query, { type: QueryTypes.SELECT });
-};
+  public async fetchTopProductsByQuarter(startMonth: number, endMonth: number) {
+    const query = `
+      SELECT 
+          Products.Name AS ProductName, 
+          SUM(OrderDetails.Quantity * OrderDetails.Price) AS TotalSales
+      FROM Products
+      JOIN OrderDetails ON Products.id = OrderDetails.ProductId
+      JOIN Orders ON OrderDetails.OrderId = Orders.id
+      WHERE MONTH(Orders.OrderDate) BETWEEN :startMonth AND :endMonth
+      GROUP BY Products.Name
+      ORDER BY TotalSales DESC;
+    `;
+    return await sequelize.query(query, {
+      type: QueryTypes.SELECT,
+      replacements: { startMonth, endMonth },
+    });
+  }
 
-export const fetchTopProductsByQuarter = async (startMonth: number, endMonth: number) => {
-  const query = `
-    SELECT 
-        Products.Name AS ProductName, 
-        SUM(OrderDetails.Quantity * OrderDetails.Price) AS TotalSales
-    FROM Products
-    JOIN OrderDetails ON Products.id = OrderDetails.ProductId
-    JOIN Orders ON OrderDetails.OrderId = Orders.id
-    WHERE MONTH(Orders.OrderDate) BETWEEN :startMonth AND :endMonth -- Lọc theo khoảng thời gian của quý
-    GROUP BY Products.Name
-    ORDER BY TotalSales DESC;
-  `;
+  public async fetchProductsNeverOrdered() {
+    const query = `
+      SELECT products.Name AS productName
+      FROM products
+      WHERE products.id NOT IN (
+        SELECT DISTINCT OrderDetails.ProductId
+        FROM OrderDetails
+      );
+    `;
+    return await sequelize.query(query, { type: QueryTypes.SELECT });
+  }
 
-  return await sequelize.query(query, {
-    type: QueryTypes.SELECT,
-    replacements: { startMonth, endMonth }, // Truyền tham số vào truy vấn
-  });
-};
+}
