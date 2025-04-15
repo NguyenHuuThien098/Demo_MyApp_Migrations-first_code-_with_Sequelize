@@ -21,7 +21,7 @@ export class CustomerRepository {
     return await Customer.destroy({ where: { id } }); // Xóa khách hàng theo ID
   }
 
-  public async fetchTopCustomerByCountry(){
+  public async fetchTopCustomerByCountry() {
     const query = `
       SELECT  customers.Country, customers.Name AS CustomerName, 
               SUM(orderdetails.Quantity * orderdetails.Price) AS TotalSpent
@@ -46,7 +46,7 @@ export class CustomerRepository {
     return await sequelize.query(query, { type: QueryTypes.SELECT });
   }
 
-  public async fetchCustomerTotalSpent(){
+  public async fetchCustomerTotalSpent() {
     const query = `
       SELECT Customers.Name AS CustomerName, SUM(OrderDetails.Quantity * OrderDetails.Price) AS TotalSpent
       FROM OrderDetails
@@ -55,6 +55,21 @@ export class CustomerRepository {
       GROUP BY Customers.Name
       ORDER BY CustomerName ASC;
     `;
+    return await sequelize.query(query, { type: QueryTypes.SELECT });
+  }
+
+  public async fetchCustomersWithThreeMonthsNoOrders() {
+    const query = `
+        SELECT customers.Name, customers.id
+        FROM Customers
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM Orders
+            WHERE Orders.CustomerId = Customers.Id
+            AND (MONTH(Orders.OrderDate) BETWEEN 1 AND 3)
+        );
+      `;
+
     return await sequelize.query(query, { type: QueryTypes.SELECT });
   }
 }

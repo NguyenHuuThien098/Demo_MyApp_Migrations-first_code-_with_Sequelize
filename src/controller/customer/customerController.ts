@@ -84,4 +84,12 @@ export class CustomerController {
     }
   }
 
+  public async getCustomersWithThreeMonthsNoOrders(_: Request, res: Response): Promise<void> {
+    try {
+      const customers = await this.customerService.fetchCustomersWithThreeMonthsNoOrders();
+      res.json(customers);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
