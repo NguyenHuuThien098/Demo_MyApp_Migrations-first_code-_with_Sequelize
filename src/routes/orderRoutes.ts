@@ -20,7 +20,7 @@ import {
 
 const router = express.Router();
 
-// --- ROUTES TĨNH: Đặt trước để tránh bị route động nuốt mất ---
+// --- ROUTES TĨNH ---
 router.get('/customer-rankings', getCustomerRankingByYear);
 router.get('/top-second', getSecondHighestOrderDaysPerMonth);
 router.get('/no-orders', getDaysWithoutOrders);

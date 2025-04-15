@@ -3,11 +3,17 @@ import { getOrderDetails, getOrderDetailById, createOrderDetail, deleteOrderDeta
 
 const router = express.Router();
 
+router.get('/by-order/:orderId', getOrderDetailsByOrderId);
+
 // Định nghĩa các route cho OrderDetails
+//TĨNH
 router.get('/', getOrderDetails);
+
+//ĐỘNG
 router.get('/:id', getOrderDetailById);
+
+//CRUD
 router.post('/', createOrderDetail);
 router.delete('/:id', deleteOrderDetailById);
-router.get('/by-order/:orderId', getOrderDetailsByOrderId);
 
 export default router;

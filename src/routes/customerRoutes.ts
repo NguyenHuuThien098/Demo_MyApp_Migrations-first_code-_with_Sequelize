@@ -4,8 +4,13 @@ import { getCustomers,getCustomer,createCustomer, deleteCustomerById } from '../
 const router = express.Router();
 
 // Định nghĩa các route cho Customers
+//TĨNH
 router.get('/', getCustomers);
+
+//ĐỘNG
 router.get('/:id',getCustomer);
+
+//CRUD
 router.post('/', createCustomer);
 router.delete('/:id', deleteCustomerById);
 
