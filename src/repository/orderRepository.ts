@@ -134,7 +134,7 @@ export class OrderRepository {
     return await sequelize.query(query, { type: QueryTypes.SELECT });
   }
 
-  public async fetchOrderDetails(){
+  public async fetchOrderDetails() {
     const query = `
       SELECT  customers.Name AS CustomerName, shippers.Name AS ShipperName, 
               SUM(OrderDetails.Quantity * OrderDetails.Price) AS TotalAmount
@@ -149,7 +149,7 @@ export class OrderRepository {
   }
 
   public async fetchTotalAmountByCountry() {
-  
+
     const query = `
     SELECT customers.Country, SUM(OrderDetails.Quantity * OrderDetails.Price) AS TotalAmount
     FROM orderdetails
@@ -163,7 +163,7 @@ export class OrderRepository {
   }
 
   public async fetchOrdersWithTotalAmountGreaterThan1000() {
-  
+
     const query = `
     
     SELECT 	orders.id, 
@@ -177,6 +177,33 @@ export class OrderRepository {
     GROUP BY OrderId
     HAVING SUM(orderdetails.Quantity * orderdetails.Price)>1000
     ORDER BY TotalAmount DESC;
+    `;
+
+    return await sequelize.query(query, { type: QueryTypes.SELECT });
+  }
+
+  public async fetchOrdersAboveAverage() {
+
+    const query = `
+    SELECT 	Orders.id AS OrderID, 
+            CONCAT(customers.Name ,' - ID: ',customers.id ) AS CustomerInfo,
+            CONCAT(shippers.Name, ' - ID: ', shippers.id) As ShipperInfo,
+            SUM(OrderDetails.Quantity * OrderDetails.Price) AS TotalAmount,
+            orders.OrderDate
+    FROM Orders
+    JOIN OrderDetails ON Orders.Id = OrderDetails.OrderId
+    JOIN customers ON orders.CustomerId = customers.id
+    JOIN shippers ON orders.ShipperId = shippers.id
+    GROUP BY Orders.Id
+    HAVING SUM(OrderDetails.Quantity * OrderDetails.Price) > (
+        SELECT AVG(TotalAmount)
+        FROM (
+            SELECT SUM(OrderDetails.Quantity * OrderDetails.Price) AS TotalAmount
+            FROM Orders
+            JOIN OrderDetails ON Orders.Id = OrderDetails.OrderId
+            GROUP BY Orders.Id
+        ) AS AvgAmount
+    );
     `;
 
     return await sequelize.query(query, { type: QueryTypes.SELECT });

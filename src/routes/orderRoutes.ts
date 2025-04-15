@@ -14,7 +14,7 @@ router.get('/details', orderController.getOrderDetails.bind(orderController));//
 router.get('/total-by-country', orderController.getTotalAmountByCountry.bind(orderController));// Lấy tổng số tiền đơn hàng của mỗi quốc gia, sắp xếp theo thứ tự giảm dần
 router.get('/', orderController.getOrders.bind(orderController));// Lấy danh sách tất cả các đơn hàng
 router.get('/total-greater-than-1000', orderController.getOrdersWithTotalAmountGreaterThan1000.bind(orderController));// Lấy danh sách các đơn hàng có tổng tiền lớn hơn 1000
-
+router.get('/above-average', orderController.getOrdersAboveAverage.bind(orderController));// Lấy danh sách đơn hàng mà tổng giá trị của đơn đó lớn hơn giá trị trung bình của tất cả các đơn hàng 
 //Động
 router.get('/:id', orderController.getOrderById.bind(orderController));// Lấy thông tin chi tiết của order qua id
 

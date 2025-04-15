@@ -148,4 +148,13 @@ export class OrderController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    public async getOrdersAboveAverage(_: Request, res: Response): Promise<void> {
+        try {
+            const orders = await this.orderService.fetchOrdersAboveAverage();
+            res.json(orders);
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    }
 }

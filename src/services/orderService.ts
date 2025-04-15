@@ -54,4 +54,8 @@ export class OrderService {
     public async fetchOrdersWithTotalAmountGreaterThan1000() {
         return await this.orderRepository.fetchOrdersWithTotalAmountGreaterThan1000();
     }
+
+    public async fetchOrdersAboveAverage() {
+        return await this.orderRepository.fetchOrdersAboveAverage();
+    }
 }
