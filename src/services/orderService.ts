@@ -50,4 +50,8 @@ export class OrderService {
     public async fetchTotalAmountByCountry() {
         return await this.orderRepository.fetchTotalAmountByCountry();
     }
+
+    public async fetchOrdersWithTotalAmountGreaterThan1000() {
+        return await this.orderRepository.fetchOrdersWithTotalAmountGreaterThan1000();
+    }
 }

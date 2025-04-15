@@ -161,4 +161,24 @@ export class OrderRepository {
 
     return await sequelize.query(query, { type: QueryTypes.SELECT });
   }
+
+  public async fetchOrdersWithTotalAmountGreaterThan1000() {
+  
+    const query = `
+    
+    SELECT 	orders.id, 
+            CONCAT(customers.Name, ' - ID: ', orders.CustomerID) AS CustomerInfo,  
+            CONCAT(shippers.Name, ' - ID: ',orders.ShipperId) AS ShipperInfo,
+            SUM(orderdetails.Quantity * orderdetails.Price) AS TotalAmount, orders.OrderDate
+    FROM orderdetails
+    JOIN orders ON orderdetails.OrderId = orders.id
+    JOIN customers ON orders.CustomerId = customers.id
+    JOIN shippers ON orders.ShipperID = shippers.id
+    GROUP BY OrderId
+    HAVING SUM(orderdetails.Quantity * orderdetails.Price)>1000
+    ORDER BY TotalAmount DESC;
+    `;
+
+    return await sequelize.query(query, { type: QueryTypes.SELECT });
+  }
 }
