@@ -55,7 +55,6 @@ export class CustomerRepository {
       GROUP BY Customers.Name
       ORDER BY CustomerName ASC;
     `;
-
     return await sequelize.query(query, { type: QueryTypes.SELECT });
   }
 }

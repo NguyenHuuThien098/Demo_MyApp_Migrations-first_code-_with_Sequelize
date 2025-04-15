@@ -1,43 +1,3 @@
-// // routes/orderRoutes.ts
-// import express from 'express';
-// import {
-//   getOrders,
-//   getOrderById,
-//   createOrder,
-//   deleteOrderById,
-// } from '../controller/order/orderController';
-
-// import {
-//   getOrdersByCustomerId,
-//   getOrdersWithCustomerInfo,
-//   getCustomerRankingByYear,
-// } from '../controller/order/orderController';
-
-// import {
-//   getDaysWithoutOrders,
-//   getSecondHighestOrderDaysPerMonth,
-// } from '../controller/order/orderController';
-
-// const router = express.Router();
-
-// // --- ROUTES TĨNH ---
-// router.get('/customer-rankings', getCustomerRankingByYear);
-// router.get('/top-second', getSecondHighestOrderDaysPerMonth);
-// router.get('/no-orders', getDaysWithoutOrders);
-// router.get('/customers', getOrdersWithCustomerInfo);
-// router.get('/customer/:customerId', getOrdersByCustomerId);
-
-// // --- CRUD ĐƠN HÀNG ---
-// router.get('/', getOrders);
-// router.post('/', createOrder);
-
-// // --- ROUTE ĐỘNG: Đặt sau cùng để tránh nhầm lẫn ---
-// router.get('/:id', getOrderById);
-// router.delete('/:id', deleteOrderById);
-
-// export default router;
-
-
 import express from 'express';
 import { OrderController } from '../controller/order/orderController';
 
@@ -45,20 +5,20 @@ const router = express.Router();
 const orderController = new OrderController();
 
 // TĨNH
-router.get('/customer-rankings', orderController.getCustomerRankingByYear.bind(orderController));
-router.get('/top-second', orderController.getSecondHighestOrderDaysPerMonth.bind(orderController));
-router.get('/no-orders', orderController.getDaysWithoutOrders.bind(orderController));
-router.get('/customers', orderController.getOrdersWithCustomerInfo.bind(orderController));
-router.get('/customer/:customerId', orderController.getOrdersByCustomerId.bind(orderController));
-router.get('/details', orderController.getOrderDetails.bind(orderController));
-router.get('/total-by-country', orderController.getTotalAmountByCountry.bind(orderController));
+router.get('/customer-rankings', orderController.getCustomerRankingByYear.bind(orderController));// Lấy danh sách xếp hạng khách hàng theo doanh số từng năm
+router.get('/top-second', orderController.getSecondHighestOrderDaysPerMonth.bind(orderController));// Lấy danh sách các ngày có số lượng đơn hàng cao thứ hai trong mỗi tháng
+router.get('/no-orders', orderController.getDaysWithoutOrders.bind(orderController));// Lấy danh sách các ngày không có đơn hàng nào được đặt
+router.get('/customers', orderController.getOrdersWithCustomerInfo.bind(orderController));// Lấy danh sách các đơn hàng kèm thông tin khách hàng
+router.get('/customer/:customerId', orderController.getOrdersByCustomerId.bind(orderController));// Lấy danh sách các đơn hàng của một khách hàng cụ thể theo ID khách hàng
+router.get('/details', orderController.getOrderDetails.bind(orderController));// Lấy thông tin chi tiết của các đơn hàng (tên khách hàng, shipper, tổng tiền)
+router.get('/total-by-country', orderController.getTotalAmountByCountry.bind(orderController));// Lấy tổng số tiền đơn hàng của mỗi quốc gia, sắp xếp theo thứ tự giảm dần
+router.get('/', orderController.getOrders.bind(orderController));// Lấy danh sách tất cả các đơn hàng
+
+//Động
+router.get('/:id', orderController.getOrderById.bind(orderController));// Lấy thông tin chi tiết của order qua id
 
 // CRUD
-router.get('/', orderController.getOrders.bind(orderController));
-router.post('/', orderController.createOrder.bind(orderController));
-
-// ĐỘNG
-router.get('/:id', orderController.getOrderById.bind(orderController));
-router.delete('/:id', orderController.deleteOrderById.bind(orderController));
+router.post('/', orderController.createOrder.bind(orderController));// Tạo mới 1 đơn hàng
+router.delete('/:id', orderController.deleteOrderById.bind(orderController));// Xóa order theo id
 
 export default router;

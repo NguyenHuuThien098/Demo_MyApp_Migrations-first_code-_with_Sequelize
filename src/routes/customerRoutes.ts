@@ -1,22 +1,3 @@
-// import express from 'express';
-// import { getCustomers,getCustomer,createCustomer, deleteCustomerById } from '../controller/customer/customerController';
-
-// const router = express.Router();
-
-// // Định nghĩa các route cho Customers
-// //TĨNH
-// router.get('/', getCustomers);
-
-// //ĐỘNG
-// router.get('/:id',getCustomer);
-
-// //CRUD
-// router.post('/', createCustomer);
-// router.delete('/:id', deleteCustomerById);
-
-// export default router;
-
-
 import express from 'express';
 import { CustomerController } from '../controller/customer/customerController';
 
@@ -26,8 +7,8 @@ const customerController = new CustomerController();
 // Định nghĩa các route cho Customers
 // TĨNH
 router.get('/', customerController.getCustomers.bind(customerController)); // Lấy tất cả khách hàng
-router.get('/top-by-country', customerController.getTopCustomerByCountry.bind(customerController)); //
-router.get('/total-spent', customerController.getCustomerTotalSpent.bind(customerController)); //
+router.get('/top-by-country', customerController.getTopCustomerByCountry.bind(customerController)); // Lấy thông tin khách hàng mua nhiều nhất của từng quốc gia
+router.get('/total-spent', customerController.getCustomerTotalSpent.bind(customerController)); // Lấy tổng tiền phải trả của từng khách hàng
 
 // ĐỘNG
 router.get('/:id', customerController.getCustomer.bind(customerController)); // Lấy khách hàng theo ID
