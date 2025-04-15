@@ -1,17 +1,25 @@
-import { fetchAllCustomers, fetchCustomerById, createCustomer, deleteCustomerById } from '../repository/customerRepository';
+import { CustomerRepository } from '../repository/customerRepository';
 
-export const fetchAllCustomersService = async () => {
-  return await fetchAllCustomers();
-};
+export class CustomerService {
+  private customerRepository: CustomerRepository;
 
-export const fetchCustomerByIdService = async (id: number) => {
-  return await fetchCustomerById(id); // Gọi repository để tìm customer theo ID
-};
+  constructor() {
+    this.customerRepository = new CustomerRepository();
+  }
 
-export const createCustomerService = async (customerData: any) => {
-  return await createCustomer(customerData); // Gọi repository để thêm mới customer
-};
+  public async fetchAllCustomers() {
+    return await this.customerRepository.fetchAllCustomers(); // Lấy tất cả khách hàng
+  }
 
-export const deleteCustomerByIdService = async (id: number) => {
-  return await deleteCustomerById(id); // Gọi repository để xóa customer
-};
+  public async fetchCustomerById(id: number) {
+    return await this.customerRepository.fetchCustomerById(id); // Tìm khách hàng theo ID
+  }
+
+  public async createCustomer(customerData: any) {
+    return await this.customerRepository.createCustomer(customerData); // Tạo mới khách hàng
+  }
+
+  public async deleteCustomerById(id: number) {
+    return await this.customerRepository.deleteCustomerById(id); // Xóa khách hàng theo ID
+  }
+}

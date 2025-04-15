@@ -1,52 +1,45 @@
-import {
-    fetchAllOrders, fetchOrderById, createOrder, deleteOrderById,
-    fetchOrdersByCustomerId,
-    fetchOrdersWithCustomerInfo,
-    fetchDaysWithoutOrders,
-    fetchSecondHighestOrderDaysPerMonth,
-    fetchCustomerRankingByYear,
-} from '../repository/orderRepository';
+import { OrderRepository } from '../repository/orderRepository';
 
-// Lấy tất cả các đơn hàng
-export const getAllOrdersService = async () => {
-    return await fetchAllOrders(); // Gọi repository để lấy tất cả đơn hàng
-};
+export class OrderService {
+  private orderRepository: OrderRepository;
 
-// Lấy thông tin đơn hàng theo ID
-export const getOrderByIdService = async (id: number) => {
-    return await fetchOrderById(id); // Gọi repository để lấy đơn hàng theo ID
-};
+  constructor() {
+    this.orderRepository = new OrderRepository();
+  }
 
-// Tạo đơn hàng mới
-export const createOrderService = async (orderData: any) => {
-    return await createOrder(orderData); // Gọi repository để tạo đơn hàng mới
-};
+  public async fetchAllOrders() {
+    return await this.orderRepository.fetchAllOrders();
+  }
 
-// Xóa đơn hàng theo ID
-export const deleteOrderByIdService = async (id: number) => {
-    return await deleteOrderById(id); // Gọi repository để xóa đơn hàng theo ID
-};
+  public async fetchOrderById(id: number) {
+    return await this.orderRepository.fetchOrderById(id);
+  }
 
-// Lấy tất cả các đơn hàng của một khách hàng dựa trên CustomerId
-export const getOrdersByCustomerIdService = async (customerId: number) => {
-    return await fetchOrdersByCustomerId(customerId); // Gọi repository để lấy đơn hàng của khách hàng
-};
+  public async createOrder(orderData: any) {
+    return await this.orderRepository.createOrder(orderData);
+  }
 
-// Lấy thông tin đơn hàng bao gồm thông tin khách hàng
-export const getOrdersWithCustomerInfoService = async () => {
-    return await fetchOrdersWithCustomerInfo(); // Gọi repository để lấy dữ liệu từ DB
-};
+  public async deleteOrderById(id: number) {
+    return await this.orderRepository.deleteOrderById(id);
+  }
 
-// Lấy danh sách các ngày trong tháng hiện tại mà không có đơn hàng nào được đặt
-export const getDaysWithoutOrdersService = async () => {
-    return await fetchDaysWithoutOrders(); // Gọi repository để lấy danh sách ngày không có đơn hàng
-};
+  public async fetchOrdersByCustomerId(customerId: number) {
+    return await this.orderRepository.fetchOrdersByCustomerId(customerId);
+  }
 
-// Lấy danh sách các ngày mà số lượng đơn hàng là cao thứ hai trong mỗi tháng
-export const getSecondHighestOrderDaysPerMonthService = async () => {
-    return await fetchSecondHighestOrderDaysPerMonth(); // Gọi repository để lấy danh sách ngày có số lượng đơn hàng cao thứ hai
-};
+  public async fetchOrdersWithCustomerInfo() {
+    return await this.orderRepository.fetchOrdersWithCustomerInfo();
+  }
 
-export const getCustomerRankingByYearService = async () => {
-    return await fetchCustomerRankingByYear(); // Gọi repository để lấy dữ liệu
-};
+  public async fetchDaysWithoutOrders() {
+    return await this.orderRepository.fetchDaysWithoutOrders();
+  }
+
+  public async fetchSecondHighestOrderDaysPerMonth() {
+    return await this.orderRepository.fetchSecondHighestOrderDaysPerMonth();
+  }
+
+  public async fetchCustomerRankingByYear() {
+    return await this.orderRepository.fetchCustomerRankingByYear();
+  }
+}

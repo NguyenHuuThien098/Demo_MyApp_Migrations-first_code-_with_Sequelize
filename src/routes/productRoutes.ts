@@ -6,11 +6,9 @@ import { getProducts, getProductById,createProduct,deleteProductById,updateProdu
 
 const router = express.Router();
 
+//TĨNH
 router.get('/top-q1', getTopProductsInQ1); // Route để lấy sản phẩm có doanh số cao nhất trong quý 1// Route để lấy sản phẩm có doanh số cao nhất trong quý 1
 router.get('/top-products', getTopProductsByQuarter); // Route để lấy sản phẩm có doanh số cao nhất theo quý
-
-// Định nghĩa các route cho Products
-//TĨNH
 router.get('/', getProducts); 
 
 //ĐỘNG

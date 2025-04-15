@@ -1,65 +1,50 @@
-import {
-  fetchAllOrderDetails,
-  fetchOrderDetailById,
-  createOrderDetail,
-  deleteOrderDetailById,
-  fetchOrderDetailsByOrderId
-} from '../repository/orderDetailRepository';
-
+import { OrderDetailRepository } from '../repository/orderDetailRepository';
 import { OrderDetailDto } from '../dto/orderDetail.dto';
 
-export const getAllOrderDetailsService = async (
-  page: number,
-  pageSize: number,
-  searchText: string | null,
-  order: string
-) => {
-  // Giới hạn pageSize không vượt quá 10
-  if (pageSize > 10) {
-    pageSize = 10;
+export class OrderDetailService {
+  private orderDetailRepository: OrderDetailRepository;
+
+  constructor() {
+    this.orderDetailRepository = new OrderDetailRepository();
   }
 
-  const limit = pageSize;
-  const offset = (page - 1) * pageSize;
+  public async fetchAllOrderDetails(page: number, pageSize: number, searchText: string | null, order: string) {
+    if (pageSize > 10) {
+      pageSize = 10;
+    }
 
-  const result = await fetchAllOrderDetails(limit, offset, searchText, order);
+    const limit = pageSize;
+    const offset = (page - 1) * pageSize;
 
-  // Kiểm tra nếu kết quả là lỗi
-  if (result instanceof Error) {
-    throw result; // Ném lỗi để controller xử lý
+    const result = await this.orderDetailRepository.fetchAllOrderDetails(limit, offset, searchText, order);
+
+    const { rows, count } = result;
+
+    const orderDetails = rows.map((detail: any) => new OrderDetailDto(detail));
+
+    return {
+      data: orderDetails,
+      total: count,
+      page,
+      pageSize,
+    };
   }
 
-  const { rows, count } = result;
+  public async fetchOrderDetailById(id: number) {
+    const orderDetail = await this.orderDetailRepository.fetchOrderDetailById(id);
+    return new OrderDetailDto(orderDetail);
+  }
 
-  // Chuyển đổi dữ liệu sang DTO
-  const orderDetails = rows.map((detail: any) => new OrderDetailDto(detail));
+  public async createOrderDetail(orderDetailData: any) {
+    return await this.orderDetailRepository.createOrderDetail(orderDetailData);
+  }
 
-  return {
-    data: orderDetails,
-    total: count,
-    page,
-    pageSize,
-  };
-};
+  public async deleteOrderDetailById(id: number) {
+    return await this.orderDetailRepository.deleteOrderDetailById(id);
+  }
 
-export const getOrderDetailByIdService = async (id: number) => {
-
-  const orderDetail = await fetchOrderDetailById(id);
-  return new OrderDetailDto(orderDetail);
-};
-
-export const createOrderDetailService = async (orderDetailData: any) => {
-  return await createOrderDetail(orderDetailData);
-};
-
-export const deleteOrderDetailByIdService = async (id: number) => {
-  return await deleteOrderDetailById(id);
-};
-
-export const fetchOrderDetailsByOrderIdService = async (orderId: number) => {
-  const orderDetails = await fetchOrderDetailsByOrderId(orderId);
-
-  // Chuyển đổi dữ liệu từ cơ sở dữ liệu sang DTO
-  return orderDetails.map((detail: any) => new OrderDetailDto(detail));
-  // return await fetchOrderDetailsByOrderId(orderId);
-};
+  public async fetchOrderDetailsByOrderId(orderId: number) {
+    const orderDetails = await this.orderDetailRepository.fetchOrderDetailsByOrderId(orderId);
+    return orderDetails.map((detail: any) => new OrderDetailDto(detail));
+  }
+}

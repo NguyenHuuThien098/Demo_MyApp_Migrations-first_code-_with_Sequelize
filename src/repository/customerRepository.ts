@@ -2,18 +2,20 @@ import db from '../models';
 
 const Customer = db.Customer;
 
-export const fetchAllCustomers = async () => {
-  return await Customer.findAll(); 
-};
+export class CustomerRepository {
+  public async fetchAllCustomers() {
+    return await Customer.findAll(); // Lấy tất cả khách hàng
+  }
 
-export const fetchCustomerById = async (id: number) => {
-  return await Customer.findByPk(id); 
-};
+  public async fetchCustomerById(id: number) {
+    return await Customer.findByPk(id); // Tìm khách hàng theo ID
+  }
 
-export const createCustomer = async (customerData: any) => {
-  return await Customer.create(customerData); 
-};
+  public async createCustomer(customerData: any) {
+    return await Customer.create(customerData); // Tạo mới khách hàng
+  }
 
-export const deleteCustomerById = async (id: number) => {
-  return await Customer.destroy({ where: { id } }); 
-};
+  public async deleteCustomerById(id: number) {
+    return await Customer.destroy({ where: { id } }); // Xóa khách hàng theo ID
+  }
+}
