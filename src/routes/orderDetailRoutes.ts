@@ -24,10 +24,14 @@ import { OrderDetailController } from '../controller/orderDetail/orderDetailCont
 
 const router = express.Router();
 const orderDetailController = new OrderDetailController();
-
+// TĨNH
 router.get('/by-order/:orderId', orderDetailController.getOrderDetailsByOrderId.bind(orderDetailController));
 router.get('/', orderDetailController.getOrderDetails.bind(orderDetailController));
+
+// ĐỘNG
 router.get('/:id', orderDetailController.getOrderDetailById.bind(orderDetailController));
+
+// CRUD
 router.post('/', orderDetailController.createOrderDetail.bind(orderDetailController));
 router.delete('/:id', orderDetailController.deleteOrderDetailById.bind(orderDetailController));
 

@@ -1,21 +1,29 @@
-import { fetchAllShippers, fetchShipperById,createShipper,deleteShipperById,updateShipperById } from '../repository/shipperRepository';
+import { ShipperRepository } from '../repository/shipperRepository';
 
-export const fetchAllShippersService = async () => {
-  return await fetchAllShippers(); // Gọi repository để lấy dữ liệu
-};
+export class ShipperService {
+  private shipperRepository: ShipperRepository;
 
-export const fetchShipperByIdService = async(id: number) =>{
-  return await fetchShipperById(id);
+  constructor() {
+    this.shipperRepository = new ShipperRepository();
+  }
+
+  public async fetchAllShippers() {
+    return await this.shipperRepository.fetchAllShippers();
+  }
+
+  public async fetchShipperById(id: number) {
+    return await this.shipperRepository.fetchShipperById(id);
+  }
+
+  public async createShipper(shipperData: any) {
+    return await this.shipperRepository.createShipper(shipperData);
+  }
+
+  public async deleteShipperById(id: number) {
+    return await this.shipperRepository.deleteShipperById(id);
+  }
+
+  public async updateShipperById(id: number, shipperData: any) {
+    return await this.shipperRepository.updateShipperById(id, shipperData);
+  }
 }
-
-export const createShipperService = async (shipperData: any) => {
-  return await createShipper(shipperData);
-};
-
-export const deleteShipperByIdService = async (id: number) => {
-  return await deleteShipperById(id);
-};
-
-export const updateShipperByIdService = async (id: number, shipperData: any) => {
-  return await updateShipperById(id, shipperData);
-};

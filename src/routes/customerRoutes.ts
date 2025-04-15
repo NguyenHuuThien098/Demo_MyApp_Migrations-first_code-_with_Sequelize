@@ -24,8 +24,13 @@ const router = express.Router();
 const customerController = new CustomerController();
 
 // Định nghĩa các route cho Customers
+// TĨNH
 router.get('/', customerController.getCustomers.bind(customerController)); // Lấy tất cả khách hàng
+
+// ĐỘNG
 router.get('/:id', customerController.getCustomer.bind(customerController)); // Lấy khách hàng theo ID
+
+// CRUD
 router.post('/', customerController.createCustomer.bind(customerController)); // Tạo mới khách hàng
 router.delete('/:id', customerController.deleteCustomerById.bind(customerController)); // Xóa khách hàng theo ID
 

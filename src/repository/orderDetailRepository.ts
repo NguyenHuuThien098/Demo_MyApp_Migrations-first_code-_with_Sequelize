@@ -5,10 +5,9 @@ const sequelize = db.sequelize;
 const OrderDetail = db.OrderDetail;
 const Order = db.Order;
 const Product = db.Product;
-const Customer = db.Customer;
 
 export class OrderDetailRepository {
-  
+
   public async fetchAllOrderDetails(limit: number, offset: number, searchText: string | null, order: string) {
     const trimmedSearchText = searchText ? searchText.trim().replace(/\s+/g, ' ') : '';
     if (searchText === ' ' || searchText === null) {
@@ -91,23 +90,37 @@ export class OrderDetailRepository {
   }
 
   public async fetchOrderDetailsByOrderId(orderId: number) {
-    return await OrderDetail.findAll({
-      where: { OrderId: orderId },
-      include: [
-        {
-          model: Order,
-          include: [
-            {
-              model: Customer,
-              attributes: ['id', 'Name', 'ContactName', 'Country'],
-            },
-          ],
-        },
-        {
-          model: Product,
-          attributes: ['id', 'Name', 'UnitPrice', 'quantity'],
-        },
-      ],
+    const query = `
+      SELECT 
+        od.id AS orderDetailId,
+        od.OrderId AS orderId,
+        od.ProductId AS productId,
+        od.Quantity AS quantity,
+        od.Price AS price,
+        o.id AS orderId,
+        o.CustomerId AS customerId,
+        c.Name AS customerName,
+        c.ContactName AS customerContactName,
+        c.Country AS customerCountry,
+        p.id AS productId,
+        p.Name AS productName,
+        p.UnitPrice AS productUnitPrice,
+        p.quantity AS productQuantity
+      FROM 
+        OrderDetails od
+      INNER JOIN 
+        Orders o ON od.OrderId = o.id
+      INNER JOIN 
+        Customers c ON o.CustomerId = c.id
+      INNER JOIN 
+        Products p ON od.ProductId = p.id
+      WHERE 
+        od.OrderId = :orderId;
+    `;
+
+    return await sequelize.query(query, {
+      type: QueryTypes.SELECT,
+      replacements: { orderId },
     });
   }
 }
