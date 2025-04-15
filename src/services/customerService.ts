@@ -34,4 +34,8 @@ export class CustomerService {
   public async fetchCustomersWithThreeMonthsNoOrders(){
     return await this.customerRepository.fetchCustomersWithThreeMonthsNoOrders();
   }
+
+  public async fetchCustomerTotalSaleRankingsByYear(){
+    return await this.customerRepository.fetchCustomerTotalSaleRankingsByYear();
+  }
 }

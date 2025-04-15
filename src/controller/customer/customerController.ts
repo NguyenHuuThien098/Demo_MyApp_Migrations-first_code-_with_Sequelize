@@ -92,4 +92,13 @@ export class CustomerController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  public async getCustomerTotalSaleRankingsByYear(_: Request, res: Response): Promise<void> {
+    try {
+      const customers = await this.customerService.fetchCustomerTotalSaleRankingsByYear();
+      res.json(customers);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 }

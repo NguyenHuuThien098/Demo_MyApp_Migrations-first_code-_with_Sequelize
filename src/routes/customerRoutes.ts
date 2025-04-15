@@ -10,6 +10,7 @@ router.get('/', customerController.getCustomers.bind(customerController)); // L�
 router.get('/top-by-country', customerController.getTopCustomerByCountry.bind(customerController)); // Lấy thông tin khách hàng mua nhiều nhất của từng quốc gia
 router.get('/total-spent', customerController.getCustomerTotalSpent.bind(customerController)); // Lấy tổng tiền phải trả của từng khách hàng
 router.get('/three-months-no-orders', customerController.getCustomersWithThreeMonthsNoOrders.bind(customerController));// Lấy các khách hàng không đặt hàng trong ba tháng liên tiếp bất kỳ.
+router.get( '/total-sale-rankings-by-year', customerController.getCustomerTotalSaleRankingsByYear.bind(customerController))
 
 // ĐỘNG
 router.get('/:id', customerController.getCustomer.bind(customerController)); // Lấy khách hàng theo ID

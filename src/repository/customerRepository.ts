@@ -72,4 +72,48 @@ export class CustomerRepository {
 
     return await sequelize.query(query, { type: QueryTypes.SELECT });
   }
+
+  public async fetchCustomerTotalSaleRankingsByYear() {
+    const query = `
+    WITH CustomerSales AS (
+        SELECT 
+            Customers.Name AS customerName,
+            YEAR(Orders.OrderDate) AS Year,
+            SUM(OrderDetails.Quantity * OrderDetails.Price) AS totalSales
+        FROM 
+            Orders
+        JOIN 
+            Customers ON Orders.CustomerId = Customers.Id
+        JOIN 
+            OrderDetails ON Orders.Id = OrderDetails.OrderId
+        GROUP BY 
+            Customers.Name, YEAR(Orders.OrderDate)
+    )
+    SELECT 
+        Year,
+        JSON_ARRAYAGG(
+            JSON_OBJECT(
+                'Name', customerName,
+                'totalSales', CAST(totalSales AS CHAR)
+            )
+        ) AS Customers
+    FROM 
+        CustomerSales
+    GROUP BY 
+        Year
+    ORDER BY 
+        Year DESC;
+    `;
+
+    // const newquery = `
+    // SELECT Customers.Name, YEAR(Orders.OrderDate) AS Year, SUM(OrderDetails.Quantity * OrderDetails.Price) AS totalSales
+    // FROM Orders
+    // JOIN Customers ON Orders.CustomerId = Customers.Id
+    // JOIN OrderDetails ON Orders.Id = OrderDetails.OrderId
+    // GROUP BY Customers.Name, YEAR(Orders.OrderDate)
+    // ORDER BY Year DESC, totalSales DESC;
+    // `;
+
+    return await sequelize.query(query, { type: QueryTypes.SELECT });
+  }
 }
