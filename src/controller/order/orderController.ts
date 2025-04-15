@@ -129,6 +129,14 @@ export class OrderController {
 
             res.status(500).json({ error: error.message });
         }
-
     }
+
+    public async getTotalAmountByCountry(_: Request, res: Response): Promise<void> {
+        try {
+            const totalAmountByCountry = await this.orderService.fetchTotalAmountByCountry();
+            res.json(totalAmountByCountry);
+        } catch(error: any){
+            res.status(500).json({ error: error.message });
+        }
+        }
 }

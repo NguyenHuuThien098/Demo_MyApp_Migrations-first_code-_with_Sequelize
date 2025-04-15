@@ -147,4 +147,18 @@ export class OrderRepository {
     `;
     return await sequelize.query(query, { type: QueryTypes.SELECT });
   }
+
+  public async fetchTotalAmountByCountry() {
+  
+    const query = `
+    SELECT customers.Country, SUM(OrderDetails.Quantity * OrderDetails.Price) AS TotalAmount
+    FROM orderdetails
+    JOIN orders ON orderdetails.OrderId = orders.Id
+    JOIN customers ON orders.CustomerId = customers.Id
+    GROUP BY customers.Country
+    ORDER BY TotalAmount DESC;
+    `;
+
+    return await sequelize.query(query, { type: QueryTypes.SELECT });
+  }
 }

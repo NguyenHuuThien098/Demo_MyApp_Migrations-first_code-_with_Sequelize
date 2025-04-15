@@ -46,4 +46,8 @@ export class OrderService {
     public async fetchOrderDetails() {
         return await this.orderRepository.fetchOrderDetails();
     }
+
+    public async fetchTotalAmountByCountry() {
+        return await this.orderRepository.fetchTotalAmountByCountry();
+    }
 }

@@ -51,6 +51,7 @@ router.get('/no-orders', orderController.getDaysWithoutOrders.bind(orderControll
 router.get('/customers', orderController.getOrdersWithCustomerInfo.bind(orderController));
 router.get('/customer/:customerId', orderController.getOrdersByCustomerId.bind(orderController));
 router.get('/details', orderController.getOrderDetails.bind(orderController));
+router.get('/total-by-country', orderController.getTotalAmountByCountry.bind(orderController));
 
 // CRUD
 router.get('/', orderController.getOrders.bind(orderController));
