@@ -42,4 +42,8 @@ export class OrderService {
     public async fetchCustomerRankingByYear() {
         return await this.orderRepository.fetchCustomerRankingByYear();
     }
+
+    public async fetchOrderDetails() {
+        return await this.orderRepository.fetchOrderDetails();
+    }
 }

@@ -133,4 +133,18 @@ export class OrderRepository {
     `;
     return await sequelize.query(query, { type: QueryTypes.SELECT });
   }
+
+  public async fetchOrderDetails(){
+    const query = `
+      SELECT  customers.Name AS CustomerName, shippers.Name AS ShipperName, 
+              SUM(OrderDetails.Quantity * OrderDetails.Price) AS TotalAmount
+      FROM orders
+      JOIN customers ON customers.id = orders.CustomerId
+      JOIN shippers ON shippers.id = orders.ShipperId
+      JOIN orderdetails ON orderdetails.OrderId = orders.id
+      GROUP BY Orders.Id, Customers.Name, Shippers.Name
+      ORDER BY CustomerName ASC;
+    `;
+    return await sequelize.query(query, { type: QueryTypes.SELECT });
+  }
 }

@@ -50,6 +50,7 @@ router.get('/top-second', orderController.getSecondHighestOrderDaysPerMonth.bind
 router.get('/no-orders', orderController.getDaysWithoutOrders.bind(orderController));
 router.get('/customers', orderController.getOrdersWithCustomerInfo.bind(orderController));
 router.get('/customer/:customerId', orderController.getOrdersByCustomerId.bind(orderController));
+router.get('/details', orderController.getOrderDetails.bind(orderController));
 
 // CRUD
 router.get('/', orderController.getOrders.bind(orderController));

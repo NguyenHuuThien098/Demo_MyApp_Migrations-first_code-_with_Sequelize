@@ -119,4 +119,16 @@ export class OrderController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    public async getOrderDetails(_: Request, res: Response): Promise<void> {
+
+        try {
+            const orderDetails = await this.orderService.fetchOrderDetails();
+            res.json(orderDetails);
+        } catch (error: any) {
+
+            res.status(500).json({ error: error.message });
+        }
+
+    }
 }
