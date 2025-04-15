@@ -26,5 +26,8 @@ export class CustomerService {
   public async fetchTopCustomerByCountry(){
     return await this.customerRepository.fetchTopCustomerByCountry();
   }
-  
+
+  public async fetchCustomerTotalSpent(){
+    return await this.customerRepository.fetchCustomerTotalSpent();
+  }
 }

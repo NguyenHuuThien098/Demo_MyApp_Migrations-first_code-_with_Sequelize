@@ -45,4 +45,17 @@ export class CustomerRepository {
     `;
     return await sequelize.query(query, { type: QueryTypes.SELECT });
   }
+
+  public async fetchCustomerTotalSpent(){
+    const query = `
+      SELECT Customers.Name AS CustomerName, SUM(OrderDetails.Quantity * OrderDetails.Price) AS TotalSpent
+      FROM OrderDetails
+      JOIN Orders ON OrderDetails.OrderId = Orders.Id
+      JOIN Customers ON Orders.CustomerId = Customers.Id
+      GROUP BY Customers.Name
+      ORDER BY CustomerName ASC;
+    `;
+
+    return await sequelize.query(query, { type: QueryTypes.SELECT });
+  }
 }

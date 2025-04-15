@@ -74,4 +74,14 @@ export class CustomerController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  public async getCustomerTotalSpent(_: Request, res: Response): Promise<void> {
+    try {
+      const customerTotalSpent = await this.customerService.fetchCustomerTotalSpent();
+      res.json(customerTotalSpent);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
 }

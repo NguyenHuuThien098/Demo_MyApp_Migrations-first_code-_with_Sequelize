@@ -27,6 +27,7 @@ const customerController = new CustomerController();
 // TĨNH
 router.get('/', customerController.getCustomers.bind(customerController)); // Lấy tất cả khách hàng
 router.get('/top-by-country', customerController.getTopCustomerByCountry.bind(customerController)); //
+router.get('/total-spent', customerController.getCustomerTotalSpent.bind(customerController)); //
 
 // ĐỘNG
 router.get('/:id', customerController.getCustomer.bind(customerController)); // Lấy khách hàng theo ID
