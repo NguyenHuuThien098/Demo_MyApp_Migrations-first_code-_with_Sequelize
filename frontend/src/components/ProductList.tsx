@@ -87,10 +87,10 @@ const ProductList: React.FC = () => {
         <button onClick={handleSearch} style={{ padding: '10px 20px', marginRight: '10px' }}>
           Search
         </button>
-        <select value={order} onChange={handleOrderChange} style={{ padding: '10px' }}>
+        {/* <select value={order} onChange={handleOrderChange} style={{ padding: '10px' }}>
           <option value="asc">Ascending</option>
           <option value="desc">Descending</option>
-        </select>
+        </select> */}
       </div>
       <table>
         <thead>

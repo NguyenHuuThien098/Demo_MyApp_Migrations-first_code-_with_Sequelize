@@ -6,13 +6,18 @@ import customerRoutes from './routes/customerRoutes';
 import orderRoutes from './routes/orderRoutes';
 import orderDetailRoutes from './routes/orderDetailRoutes';
 import db from './config/database';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Cấu hình CORS
+
+
+const FRONTEND_PORT = process.env.FRONTEND_PORT || 3001; // Mặc định là 3001 nếu không có biến môi trường
+
 const corsOptions = {
-  origin: 'http://localhost:3001', // Chỉ cho phép frontend từ localhost:3001
+  origin: `http://localhost:${FRONTEND_PORT}`, // Linh động theo cổng frontend
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Các phương thức HTTP được phép
   credentials: true, // Cho phép gửi cookie nếu cần
 };
