@@ -93,10 +93,18 @@ export class OrderController {
         }
     }
 
-    public async getDaysWithoutOrders(_: Request, res: Response): Promise<void> {
+    public async getDaysWithoutOrdersForMonth(req: Request, res: Response): Promise<void> {
         try {
-            const daysWithoutOrders = await this.orderService.fetchDaysWithoutOrders();
-            res.json(daysWithoutOrders);
+            const year = parseInt(req.query.year as string, 10);
+            const month = parseInt(req.query.month as string, 10);
+
+            if (isNaN(year) || isNaN(month) || month < 1 || month > 12) {
+                res.status(400).json({ error: 'Invalid year or month' });
+                return;
+            }
+
+            const days = await this.orderService.fetchDaysWithoutOrdersForMonth(year, month);
+            res.json(days);
         } catch (error: any) {
             res.status(500).json({ error: error.message });
         }

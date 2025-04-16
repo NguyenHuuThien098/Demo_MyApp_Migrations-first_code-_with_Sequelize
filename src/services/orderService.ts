@@ -31,8 +31,8 @@ export class OrderService {
         return await this.orderRepository.fetchOrdersWithCustomerInfo();
     }
 
-    public async fetchDaysWithoutOrders() {
-        return await this.orderRepository.fetchDaysWithoutOrders();
+    public async fetchDaysWithoutOrdersForMonth(year: number, month: number) {
+        return await this.orderRepository.fetchDaysWithoutOrdersForMonth(year, month);
     }
 
     public async fetchSecondHighestOrderDaysPerMonth() {

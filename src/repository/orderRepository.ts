@@ -71,25 +71,45 @@ export class OrderRepository {
     return await sequelize.query(query, { type: QueryTypes.SELECT });
   }
 
-  public async fetchDaysWithoutOrders() {
+  public async fetchDaysWithoutOrdersForMonth(year: number, month: number) {
     const query = `
-      WITH RECURSIVE calendar AS (
-        SELECT DATE_FORMAT(CURDATE(), '%Y-%m-01') AS date
-        UNION ALL
-        SELECT DATE_ADD(date, INTERVAL 1 DAY)
-        FROM calendar
-        WHERE date < LAST_DAY(CURDATE())
+      WITH RECURSIVE AllDates AS (
+          SELECT 
+              DATE(CONCAT(:inputYear, '-', :inputMonth, '-01')) AS OrderDate
+          UNION ALL
+          SELECT 
+              DATE_ADD(OrderDate, INTERVAL 1 DAY)
+          FROM 
+              AllDates
+          WHERE 
+              OrderDate < LAST_DAY(DATE(CONCAT(:inputYear, '-', :inputMonth, '-01')))
+      ),
+      NoOrders AS (
+          SELECT 
+              a.OrderDate,
+              MONTH(a.OrderDate) AS Month,
+              YEAR(a.OrderDate) AS Year
+          FROM 
+              AllDates a
+          LEFT JOIN 
+              Orders o ON a.OrderDate = DATE(o.OrderDate)
+          WHERE 
+              o.id IS NULL
       )
-      SELECT date
-      FROM calendar
-      WHERE date NOT IN (
-        SELECT DATE(OrderDate)
-        FROM Orders
-      );
+      SELECT 
+          OrderDate,
+          Month,
+          Year
+      FROM 
+          NoOrders;
     `;
-    return await sequelize.query(query, { type: QueryTypes.SELECT });
-  }
 
+    return await sequelize.query(query, {
+      type: QueryTypes.SELECT,
+      replacements: { inputYear: year, inputMonth: month },
+    });
+  }
+  
   public async fetchSecondHighestOrderDaysPerMonth() {
     const query = `
       SELECT OrderDate, COUNT(orders.id) AS OrderCount
@@ -193,5 +213,4 @@ export class OrderRepository {
 
     return await sequelize.query(query, { type: QueryTypes.SELECT });
   }
-
 }

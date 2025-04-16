@@ -7,7 +7,7 @@ const orderController = new OrderController();
 // TĨNH
 router.get('/customer-rankings', orderController.getCustomerRankingByYear.bind(orderController));// Lấy danh sách xếp hạng khách hàng theo doanh số từng năm
 router.get('/top-second', orderController.getSecondHighestOrderDaysPerMonth.bind(orderController));// Lấy danh sách các ngày có số lượng đơn hàng cao thứ hai trong mỗi tháng
-router.get('/no-orders', orderController.getDaysWithoutOrders.bind(orderController));// Lấy danh sách các ngày không có đơn hàng nào được đặt
+router.get('/no-orders-for-month', orderController.getDaysWithoutOrdersForMonth.bind(orderController));// Lấy danh sách các ngày không có order trong tháng
 router.get('/customers', orderController.getOrdersWithCustomerInfo.bind(orderController));// Lấy danh sách các đơn hàng kèm thông tin khách hàng
 router.get('/customer/:customerId', orderController.getOrdersByCustomerId.bind(orderController));// Lấy danh sách các đơn hàng của một khách hàng cụ thể theo ID khách hàng
 router.get('/details', orderController.getOrderDetails.bind(orderController));// Lấy thông tin chi tiết của các đơn hàng (tên khách hàng, shipper, tổng tiền)
