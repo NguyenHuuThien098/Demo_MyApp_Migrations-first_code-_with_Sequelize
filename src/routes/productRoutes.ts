@@ -5,7 +5,6 @@ const router = express.Router();
 const productController = new ProductController();
 
 // TĨNH
-router.get('/top-q1', productController.getTopProductsInQ1.bind(productController));// Lấy danh sách các sản phẩm có doanh số cao nhất trong quý 1
 router.get('/top-products', productController.getTopProductsByQuarter.bind(productController));// Lấy danh sách các sản phẩm có doanh số cao nhất theo quý (dựa trên tham số `quarter`)
 router.get('/', productController.getProducts.bind(productController));// Lấy danh sách tất cả các sản phẩm
 router.get('/never-ordered', productController.getProductsNeverOrdered.bind(productController));// Lấy danh sách các sản phẩm chưa bao giờ được đặt hàng

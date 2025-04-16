@@ -27,10 +27,6 @@ export class ProductService {
     return await this.productRepository.updateProductById(id, productData);
   }
 
-  public async fetchTopProductsInQ1() {
-    return await this.productRepository.fetchTopProductsInQ1();
-  }
-
   public async fetchTopProductsByQuarter(quarter: number) {
     const startMonth = (quarter - 1) * 3 + 1;
     const endMonth = startMonth + 2;

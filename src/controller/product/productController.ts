@@ -78,15 +78,6 @@ export class ProductController {
     }
   }
 
-  public async getTopProductsInQ1(_: Request, res: Response): Promise<void> {
-    try {
-      const topProducts = await this.productService.fetchTopProductsInQ1();
-      res.json(topProducts);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  }
-
   public async getTopProductsByQuarter(req: Request, res: Response): Promise<void> {
     try {
       const quarter = Number(req.query.quarter);

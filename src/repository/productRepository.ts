@@ -25,20 +25,6 @@ export class ProductRepository {
     return await Product.update(productData, { where: { id }, returning: true });
   }
 
-  public async fetchTopProductsInQ1() {
-    const query = `
-      SELECT 
-          Products.Name AS ProductName, 
-          SUM(OrderDetails.Quantity * OrderDetails.Price) AS TotalSales
-      FROM Products
-      JOIN OrderDetails ON Products.id = OrderDetails.ProductId
-      JOIN Orders ON OrderDetails.OrderId = Orders.id
-      WHERE MONTH(Orders.OrderDate) BETWEEN 1 AND 3
-      GROUP BY Products.Name
-      ORDER BY TotalSales DESC;
-    `;
-    return await sequelize.query(query, { type: QueryTypes.SELECT });
-  }
 
   public async fetchTopProductsByQuarter(startMonth: number, endMonth: number) {
     const query = `
@@ -59,15 +45,18 @@ export class ProductRepository {
   }
 
   public async fetchProductsNeverOrdered() {
-    const query = `
-      SELECT products.Name AS productName
-      FROM products
-      WHERE products.id NOT IN (
-        SELECT DISTINCT OrderDetails.ProductId
-        FROM OrderDetails
-      );
-    `;
-    return await sequelize.query(query, { type: QueryTypes.SELECT });
+    return await Product.findAll({
+      attributes: [['Name', 'productName']], // Lấy tên sản phẩm và đặt alias là productName
+      where: {
+        id: {
+          [db.Sequelize.Op.notIn]: db.sequelize.literal(`
+            (SELECT DISTINCT OrderDetails.ProductId
+             FROM OrderDetails)
+          `), // Lọc các sản phẩm không có trong bảng OrderDetails
+        },
+      },
+      raw: true,
+    });
   }
 
 }
