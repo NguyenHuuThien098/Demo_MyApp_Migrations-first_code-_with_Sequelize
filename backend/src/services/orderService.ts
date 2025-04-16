@@ -16,8 +16,28 @@ export class OrderService {
     }
 
     public async createOrder(orderData: any) {
-        return await this.orderRepository.createOrder(orderData);
+        const { customerId, shipperId, orderDetails } = orderData;
+
+        // Tạo đơn hàng
+        const order = await this.orderRepository.createOrder({
+            CustomerId: customerId,
+            ShipperId: shipperId,
+            OrderDate: new Date(),
+        });
+
+        // Tạo chi tiết đơn hàng
+        for (const detail of orderDetails) {
+            await this.orderRepository.createOrderDetail({
+                OrderId: order.id,
+                ProductId: detail.productId,
+                Quantity: detail.quantity,
+                Price: detail.price,
+            });
+        }
+
+        return order;
     }
+    
 
     public async deleteOrderById(id: number) {
         return await this.orderRepository.deleteOrderById(id);

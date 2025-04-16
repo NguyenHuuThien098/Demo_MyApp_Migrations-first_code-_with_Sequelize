@@ -37,7 +37,21 @@ export class OrderController {
 
     public async createOrder(req: Request, res: Response): Promise<void> {
         try {
-            const order = await this.orderService.createOrder(req.body);
+            const { customerId, shipperId, orderDetails } = req.body;
+
+            // Kiểm tra dữ liệu đầu vào
+            if (!customerId || !shipperId || !Array.isArray(orderDetails) || orderDetails.length === 0) {
+                res.status(400).json({ error: 'Invalid input data' });
+                return;
+            }
+
+            // Gọi service để tạo đơn hàng
+            const order = await this.orderService.createOrder({
+                customerId,
+                shipperId,
+                orderDetails,
+            });
+
             res.status(201).json(order);
         } catch (error: any) {
             res.status(500).json({ error: error.message });

@@ -22,6 +22,9 @@ export class OrderRepository {
     });
   }
 
+
+
+
   public async fetchOrderById(id: number) {
     return await Order.findByPk(id, {
       include: [
@@ -36,6 +39,10 @@ export class OrderRepository {
     return await Order.create(orderData);
   }
 
+  public async createOrderDetail(orderDetailData: any) {
+    return await OrderDetail.create(orderDetailData);
+  }
+  
   public async deleteOrderById(id: number) {
     return await Order.destroy({ where: { id } });
   }
@@ -278,9 +285,9 @@ export class OrderRepository {
     });
   }
 
-public async fetchOrdersAboveAverage() {
-  // Tính tổng trung bình của tất cả các đơn hàng
-  const averageQuery = `
+  public async fetchOrdersAboveAverage() {
+    // Tính tổng trung bình của tất cả các đơn hàng
+    const averageQuery = `
     SELECT AVG(TotalAmount) AS AverageAmount
     FROM (
       SELECT SUM(OrderDetails.Quantity * OrderDetails.Price) AS TotalAmount
@@ -290,36 +297,36 @@ public async fetchOrdersAboveAverage() {
     ) AS AvgAmount
   `;
 
-  const result = await sequelize.query(averageQuery, { type: QueryTypes.SELECT });
-  const averageAmount = result[0].AverageAmount;
+    const result = await sequelize.query(averageQuery, { type: QueryTypes.SELECT });
+    const averageAmount = result[0].AverageAmount;
 
-  // Lấy danh sách các đơn hàng có tổng tiền lớn hơn trung bình
-  return await Order.findAll({
-    attributes: [
-      ['id', 'OrderID'], // ID của đơn hàng
-      [db.sequelize.literal("CONCAT(Customer.Name, ' - ID: ', Customer.id)"), 'CustomerInfo'], // Thông tin khách hàng
-      [db.sequelize.literal("CONCAT(Shipper.Name, ' - ID: ', Shipper.id)"), 'ShipperInfo'], // Thông tin shipper
-      [db.sequelize.fn('SUM', db.sequelize.literal('OrderDetails.Quantity * OrderDetails.Price')), 'TotalAmount'], // Tổng tiền
-      'OrderDate', // Ngày đặt hàng
-    ],
-    include: [
-      {
-        model: Customer,
-        attributes: [], // Không cần thêm các cột khác từ bảng Customer
-      },
-      {
-        model: Shipper,
-        attributes: [], // Không cần thêm các cột khác từ bảng Shipper
-      },
-      {
-        model: OrderDetail,
-        attributes: [], // Không cần thêm các cột khác từ bảng OrderDetails
-      },
-    ],
-    group: ['Order.id', 'Customer.Name', 'Shipper.Name'], // Nhóm theo ID đơn hàng, tên khách hàng, và tên shipper
-    having: db.sequelize.literal(`SUM(OrderDetails.Quantity * OrderDetails.Price) > ${averageAmount}`), // Điều kiện tổng tiền > trung bình
-    order: [[db.sequelize.literal('TotalAmount'), 'ASC']], // Sắp xếp theo tổng tiền giảm dần
-    raw: true,
-  });
-}
+    // Lấy danh sách các đơn hàng có tổng tiền lớn hơn trung bình
+    return await Order.findAll({
+      attributes: [
+        ['id', 'OrderID'], // ID của đơn hàng
+        [db.sequelize.literal("CONCAT(Customer.Name, ' - ID: ', Customer.id)"), 'CustomerInfo'], // Thông tin khách hàng
+        [db.sequelize.literal("CONCAT(Shipper.Name, ' - ID: ', Shipper.id)"), 'ShipperInfo'], // Thông tin shipper
+        [db.sequelize.fn('SUM', db.sequelize.literal('OrderDetails.Quantity * OrderDetails.Price')), 'TotalAmount'], // Tổng tiền
+        'OrderDate', // Ngày đặt hàng
+      ],
+      include: [
+        {
+          model: Customer,
+          attributes: [], // Không cần thêm các cột khác từ bảng Customer
+        },
+        {
+          model: Shipper,
+          attributes: [], // Không cần thêm các cột khác từ bảng Shipper
+        },
+        {
+          model: OrderDetail,
+          attributes: [], // Không cần thêm các cột khác từ bảng OrderDetails
+        },
+      ],
+      group: ['Order.id', 'Customer.Name', 'Shipper.Name'], // Nhóm theo ID đơn hàng, tên khách hàng, và tên shipper
+      having: db.sequelize.literal(`SUM(OrderDetails.Quantity * OrderDetails.Price) > ${averageAmount}`), // Điều kiện tổng tiền > trung bình
+      order: [[db.sequelize.literal('TotalAmount'), 'ASC']], // Sắp xếp theo tổng tiền giảm dần
+      raw: true,
+    });
+  }
 }

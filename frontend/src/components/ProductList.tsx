@@ -16,7 +16,7 @@ const ProductList: React.FC = () => {
   const [page, setPage] = useState<number>(1); // State cho phân trang
   const [pageSize] = useState<number>(10); // Số sản phẩm trên mỗi trang
   const [total, setTotal] = useState<number>(0); // Tổng số sản phẩm
-  const [order, setOrder] = useState<string>('asc'); // Thứ tự sắp xếp (asc/desc)
+  const [order,] = useState<string>('asc'); // Thứ tự sắp xếp (asc/desc)
 
   // Hàm gọi API tìm kiếm sản phẩm
   const fetchProducts = async (nameProduct: string, page: number, pageSize: number, order: string) => {
@@ -65,9 +65,9 @@ const ProductList: React.FC = () => {
   };
 
   // Xử lý khi thay đổi thứ tự sắp xếp
-  const handleOrderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setOrder(e.target.value);
-  };
+  // const handleOrderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  //   setOrder(e.target.value);
+  // };
 
 //   if (loading) return <p>Loading products...</p>;
   if (error) return <p>{error}</p>;

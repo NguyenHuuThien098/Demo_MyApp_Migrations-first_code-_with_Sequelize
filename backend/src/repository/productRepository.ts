@@ -31,7 +31,7 @@ export class ProductRepository {
       limit,
       offset,
       searchText: trimmedSearchText || ' ',
-      searchPattern: `${trimmedSearchText || ' '}%`,
+      searchPattern: `%${trimmedSearchText || ' '}%`,
     };
   
     const rows = await sequelize.query(query, {
