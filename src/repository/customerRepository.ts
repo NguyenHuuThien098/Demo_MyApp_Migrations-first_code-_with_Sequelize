@@ -27,7 +27,7 @@ export class CustomerRepository {
               SUM(orderdetails.Quantity * orderdetails.Price) AS TotalSpent
       FROM orderdetails
       JOIN orders ON orderdetails.OrderId = orders.Id
-      JOIN customers ON orders.CustomerId = customers.Id
+      JOIN customers ON orders.Custom                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 erId = customers.Id
       GROUP BY customers.Country, customers.Name
       HAVING SUM(orderdetails.Quantity * orderdetails.Price) = (
           SELECT MAX(TotalSpent)
@@ -88,6 +88,8 @@ export class CustomerRepository {
             OrderDetails ON Orders.Id = OrderDetails.OrderId
         GROUP BY 
             Customers.Name, YEAR(Orders.OrderDate)
+        ORDER BY 
+            totalSales DESC
     )
     SELECT 
         Year,
