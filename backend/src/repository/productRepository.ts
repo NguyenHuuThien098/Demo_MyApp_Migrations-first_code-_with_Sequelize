@@ -6,7 +6,53 @@ const Product = db.Product;
 
 export class ProductRepository {
   public async fetchAllProducts() {
-    return await Product.findAll();
+    return await Product.findAll({
+      attributes: ['id', 'name', 'unitPrice', 'quantity'], // Chỉ lấy các trường cần thiết
+    });
+  }
+
+  public async searchProducts(limit: number, offset: number, searchText: string) {
+    const trimmedSearchText = searchText ? searchText.trim().replace(/\s+/g, ' ') : '';
+    if (searchText === ' ' || searchText === null) {
+      throw new Error('Nhập từ khóa tìm kiếm');
+    }
+    const query = `
+      SELECT 
+        id, 
+        name, 
+        unitPrice, 
+        quantity 
+      FROM Products
+      WHERE name LIKE :searchPattern
+      LIMIT :limit OFFSET :offset;
+    `;
+  
+    const replacements = {
+      limit,
+      offset,
+      searchText: trimmedSearchText || ' ',
+      searchPattern: `${trimmedSearchText || ' '}%`,
+    };
+  
+    const rows = await sequelize.query(query, {
+      type: QueryTypes.SELECT,
+      replacements,
+    });
+  
+    const countQuery = `
+      SELECT COUNT(*) AS total
+      FROM Products
+      WHERE name LIKE :searchPattern;
+    `;
+  
+    const countResult = await sequelize.query(countQuery, {
+      type: QueryTypes.SELECT,
+      replacements,
+    });
+  
+    const total = countResult[0]?.total || 0;
+  
+    return { rows, count: total };
   }
 
   public async fetchProductById(id: number) {

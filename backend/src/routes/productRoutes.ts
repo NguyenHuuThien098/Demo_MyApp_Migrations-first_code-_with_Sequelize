@@ -5,10 +5,10 @@ const router = express.Router();
 const productController = new ProductController();
 
 // TĨNH
+router.get('/search', productController.searchProducts.bind(productController)); // API tìm kiếm sản phẩm có phân trang
 router.get('/top-products', productController.getTopProductsByQuarter.bind(productController));// Lấy danh sách các sản phẩm có doanh số cao nhất theo quý (dựa trên tham số `quarter`)
 router.get('/', productController.getProducts.bind(productController));// Lấy danh sách tất cả các sản phẩm
 router.get('/never-ordered', productController.getProductsNeverOrdered.bind(productController));// Lấy danh sách các sản phẩm chưa bao giờ được đặt hàng
-
 // ĐỘNG
 router.get('/:id', productController.getProductById.bind(productController));// Lấy thông tin chi tiết của một sản phẩm theo ID
 

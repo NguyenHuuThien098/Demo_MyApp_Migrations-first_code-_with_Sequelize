@@ -17,6 +17,25 @@ export class ProductController {
     }
   }
 
+  public async searchProducts(req: Request, res: Response): Promise<void> {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      let pageSize = parseInt(req.query.pageSize as string) || 10;
+  
+      if (pageSize > 50) {
+        pageSize = 50; // Giới hạn số lượng sản phẩm trên mỗi trang
+      }
+  
+      const searchText = req.query.nameProduct as string || '';
+  
+      const result = await this.productService.searchProducts(page, pageSize, searchText);
+  
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
   public async getProductById(req: Request, res: Response): Promise<void> {
     try {
       const productId = Number(req.params.id);

@@ -11,6 +11,22 @@ export class ProductService {
     return await this.productRepository.fetchAllProducts();
   }
 
+  public async searchProducts(page: number, pageSize: number, searchText: string) {
+    const limit = pageSize;
+    const offset = (page - 1) * pageSize;
+  
+    const result = await this.productRepository.searchProducts(limit, offset, searchText);
+  
+    const { rows, count } = result;
+  
+    return {
+      data: rows,
+      total: count,
+      page,
+      pageSize,
+    };
+  }
+
   public async fetchProductById(id: number) {
     return await this.productRepository.fetchProductById(id);
   }
