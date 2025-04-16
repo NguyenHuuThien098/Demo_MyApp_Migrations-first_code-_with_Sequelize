@@ -1,8 +1,8 @@
 import db from '../models';
-import { QueryTypes } from 'sequelize';
+// import { QueryTypes } from 'sequelize';
 
 const Customer = db.Customer;
-const sequelize = db.sequelize;
+// const sequelize = db.sequelize;
 
 export class CustomerRepository {
   public async fetchAllCustomers() {
@@ -22,100 +22,134 @@ export class CustomerRepository {
   }
 
   public async fetchTopCustomerByCountry() {
-    const query = `
-      SELECT  customers.Country, customers.Name AS CustomerName, 
-              SUM(orderdetails.Quantity * orderdetails.Price) AS TotalSpent
-      FROM orderdetails
-      JOIN orders ON orderdetails.OrderId = orders.Id
-      JOIN customers ON orders.Custom                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 erId = customers.Id
-      GROUP BY customers.Country, customers.Name
-      HAVING SUM(orderdetails.Quantity * orderdetails.Price) = (
-          SELECT MAX(TotalSpent)
-          FROM (
-              SELECT  customers.Country,customers.Name, 
-                      SUM(orderdetails.Quantity * orderdetails.Price) AS TotalSpent
-              FROM orderDetails
-              JOIN orders ON orderDetails.OrderId = orders.Id
-              JOIN customers ON orders.CustomerId = customers.Id
-              GROUP BY Customers.Name, customers.Country
-          ) AS CountryMax
-          WHERE CountryMax.Country = customers.Country
-      )
-      ORDER BY TotalSpent DESC;
-    `;
-    return await sequelize.query(query, { type: QueryTypes.SELECT });
+    return await Customer.findAll({
+      attributes: [
+        'country', // Lấy cột Country từ bảng Customers
+        ['name', 'CustomerName'], // Lấy tên khách hàng
+        [db.sequelize.fn('SUM', db.sequelize.literal('`Orders->OrderDetails`.`Quantity` * `Orders->OrderDetails`.`Price`')), 'TotalSpent'], // Tính tổng tiền
+      ],
+      include: [
+        {
+          model: db.Order,
+          attributes: [], // Không cần thêm các cột khác từ bảng Orders
+          include: [
+            {
+              model: db.OrderDetail,
+              attributes: [], // Không cần thêm các cột khác từ bảng OrderDetails
+            },
+          ],
+        },
+      ],
+      group: ['Customer.country', 'Customer.name'], // Nhóm theo quốc gia và tên khách hàng
+      order: [[db.sequelize.literal('TotalSpent'), 'DESC']], // Sắp xếp theo tổng tiền giảm dần
+      raw: true,
+    }).then((results: any) => {
+      // Lọc kết quả để chỉ lấy khách hàng có tổng tiền cao nhất trong từng quốc gia
+      const topCustomersByCountry = results.reduce((acc: any, customer: any) => {
+        if (!acc[customer.country] || acc[customer.country].TotalSpent < customer.TotalSpent) {
+          acc[customer.country] = customer;
+        }
+        return acc;
+      }, {});
+  
+      return Object.values(topCustomersByCountry);
+    });
   }
 
-  public async fetchCustomerTotalSpent() {
-    const query = `
-      SELECT Customers.Name AS CustomerName, SUM(OrderDetails.Quantity * OrderDetails.Price) AS TotalSpent
-      FROM OrderDetails
-      JOIN Orders ON OrderDetails.OrderId = Orders.Id
-      JOIN Customers ON Orders.CustomerId = Customers.Id
-      GROUP BY Customers.Name
-      ORDER BY CustomerName ASC;
-    `;
-    return await sequelize.query(query, { type: QueryTypes.SELECT });
-  }
+public async fetchCustomerTotalSpent() {
+  return await Customer.findAll({
+    attributes: [
+      ['name', 'CustomerName'], // Lấy tên khách hàng
+      [db.sequelize.fn('SUM', db.sequelize.literal('`Orders->OrderDetails`.`Quantity` * `Orders->OrderDetails`.`Price`')), 'TotalSpent'], // Tính tổng tiền
+    ],
+    include: [
+      {
+        model: db.Order,
+        attributes: [], // Không cần thêm các cột khác từ bảng Orders
+        include: [
+          {
+            model: db.OrderDetail,
+            attributes: [], // Không cần thêm các cột khác từ bảng OrderDetails
+          },
+        ],
+      },
+    ],
+    group: ['Customer.name'], // Nhóm theo tên khách hàng
+    order: [['name', 'ASC']], // Sắp xếp theo tên khách hàng tăng dần
+    raw: true,
+  });
+}
 
-  public async fetchCustomersWithThreeMonthsNoOrders() {
-    const query = `
-        SELECT customers.Name, customers.id
-        FROM Customers
-        WHERE NOT EXISTS (
-            SELECT 1
-            FROM Orders
-            WHERE Orders.CustomerId = Customers.Id
-            AND (MONTH(Orders.OrderDate) BETWEEN 1 AND 3)
-        );
-      `;
+public async fetchCustomersWithThreeMonthsNoOrders() {
+  return await Customer.findAll({
+    attributes: ['id', 'name'], // Lấy ID và tên khách hàng
+    include: [
+      {
+        model: db.Order,
+        attributes: [], // Không cần thêm các cột khác từ bảng Orders
+        required: false, // Sử dụng LEFT JOIN để lấy cả khách hàng không có đơn hàng
+        where: {
+          OrderDate: {
+            [db.Sequelize.Op.notBetween]: [
+              db.Sequelize.literal("DATE_SUB(CURDATE(), INTERVAL 3 MONTH)"),
+              db.Sequelize.literal("CURDATE()"),
+            ],
+          },
+        },
+      },
+    ],
+    raw: true,
+  });
+}
 
-    return await sequelize.query(query, { type: QueryTypes.SELECT });
-  }
+public async fetchCustomerTotalSaleRankingsByYear() {
+  return await Customer.findAll({
+    attributes: [
+      [db.sequelize.fn('YEAR', db.sequelize.col('Orders.OrderDate')), 'Year'], // Lấy năm từ OrderDate
+      ['name', 'CustomerName'], // Lấy tên khách hàng
+      [db.sequelize.fn('SUM', db.sequelize.literal('`Orders->OrderDetails`.`Quantity` * `Orders->OrderDetails`.`Price`')), 'TotalSales'], // Tính tổng doanh số
+    ],
+    include: [
+      {
+        model: db.Order,
+        attributes: [], // Không cần thêm các cột khác từ bảng Orders
+        required: true, // Chỉ lấy các khách hàng có đơn hàng
+        include: [
+          {
+            model: db.OrderDetail,
+            attributes: [], // Không cần thêm các cột khác từ bảng OrderDetails
+          },
+        ],
+      },
+    ],
+    where: db.sequelize.where(db.sequelize.fn('YEAR', db.sequelize.col('Orders.OrderDate')), {
+      [db.Sequelize.Op.ne]: null, // Loại bỏ các bản ghi có OrderDate null
+    }),
+    group: ['Year', 'Customer.name'], // Nhóm theo năm và tên khách hàng
+    order: [
+      [db.sequelize.fn('YEAR', db.sequelize.col('Orders.OrderDate')), 'DESC'], // Sắp xếp theo năm giảm dần
+      [db.sequelize.literal('TotalSales'), 'DESC'], // Sắp xếp theo tổng doanh số giảm dần
+    ],
+    raw: true,
+  }).then((results: any) => {
+    // Nhóm kết quả theo năm
+    const rankingsByYear = results.reduce((acc: any, record: any) => {
+      const year = record.Year;
+      if (!acc[year]) {
+        acc[year] = [];
+      }
+      acc[year].push({
+        Name: record.CustomerName,
+        TotalSales: record.TotalSales,
+      });
+      return acc;
+    }, {});
 
-  public async fetchCustomerTotalSaleRankingsByYear() {
-    const query = `
-    WITH CustomerSales AS (
-        SELECT 
-            Customers.Name AS customerName,
-            YEAR(Orders.OrderDate) AS Year,
-            SUM(OrderDetails.Quantity * OrderDetails.Price) AS totalSales
-        FROM 
-            Orders
-        JOIN 
-            Customers ON Orders.CustomerId = Customers.Id
-        JOIN 
-            OrderDetails ON Orders.Id = OrderDetails.OrderId
-        GROUP BY 
-            Customers.Name, YEAR(Orders.OrderDate)
-        ORDER BY 
-            totalSales DESC
-    )
-    SELECT 
-        Year,
-        JSON_ARRAYAGG(
-            JSON_OBJECT(
-                'Name', customerName,
-                'totalSales', CAST(totalSales AS CHAR)
-            )
-        ) AS Customers
-    FROM 
-        CustomerSales
-    GROUP BY 
-        Year
-    ORDER BY 
-        Year DESC;
-    `;
-
-    // const newquery = `
-    // SELECT Customers.Name, YEAR(Orders.OrderDate) AS Year, SUM(OrderDetails.Quantity * OrderDetails.Price) AS totalSales
-    // FROM Orders
-    // JOIN Customers ON Orders.CustomerId = Customers.Id
-    // JOIN OrderDetails ON Orders.Id = OrderDetails.OrderId
-    // GROUP BY Customers.Name, YEAR(Orders.OrderDate)
-    // ORDER BY Year DESC, totalSales DESC;
-    // `;
-
-    return await sequelize.query(query, { type: QueryTypes.SELECT });
-  }
+    // Chuyển đổi kết quả thành mảng
+    return Object.entries(rankingsByYear).map(([year, customers]) => ({
+      Year: year,
+      Customers: customers,
+    }));
+  });
+}
 }
