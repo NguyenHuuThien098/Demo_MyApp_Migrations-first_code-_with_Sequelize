@@ -90,37 +90,36 @@ export class OrderDetailRepository {
   }
 
   public async fetchOrderDetailsByOrderId(orderId: number) {
-    const query = `
-      SELECT 
-        od.id AS orderDetailId,
-        od.OrderId AS orderId,
-        od.ProductId AS productId,
-        od.Quantity AS quantity,
-        od.Price AS price,
-        o.id AS orderId,
-        o.CustomerId AS customerId,
-        c.Name AS customerName,
-        c.ContactName AS customerContactName,
-        c.Country AS customerCountry,
-        p.id AS productId,
-        p.Name AS productName,
-        p.UnitPrice AS productUnitPrice,
-        p.quantity AS productQuantity
-      FROM 
-        OrderDetails od
-      INNER JOIN 
-        Orders o ON od.OrderId = o.id
-      INNER JOIN 
-        Customers c ON o.CustomerId = c.id
-      INNER JOIN 
-        Products p ON od.ProductId = p.id
-      WHERE 
-        od.OrderId = :orderId;
-    `;
-
-    return await sequelize.query(query, {
-      type: QueryTypes.SELECT,
-      replacements: { orderId },
-    });
-  }
+  return await OrderDetail.findAll({
+    attributes: [
+      ['id', 'id'], // ID của OrderDetail
+      ['OrderId', 'orderId'], // ID của Order
+      ['ProductId', 'productId'], // ID của Product
+      ['Quantity', 'quantity'], // Số lượng
+      ['Price', 'price'], // Giá
+      [db.sequelize.col('Product.Name'), 'productName'], // Tên sản phẩm
+      [db.sequelize.col('Order.Customer.Name'), 'customerName'], // Tên khách hàng
+    ],
+    include: [
+      {
+        model: Order,
+        attributes: [], // Không cần thêm các cột khác từ bảng Orders
+        include: [
+          {
+            model: db.Customer,
+            attributes: [], // Không cần thêm các cột khác từ bảng Customers
+          },
+        ],
+      },
+      {
+        model: Product,
+        attributes: [], // Không cần thêm các cột khác từ bảng Products
+      },
+    ],
+    where: {
+      OrderId: orderId, // Lọc theo OrderId
+    },
+    raw: true,
+  });
+}
 }
