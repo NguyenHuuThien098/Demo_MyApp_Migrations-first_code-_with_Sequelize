@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import Button from '@mui/material/Button';
+import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import Pagination from '@mui/material/Pagination';
 
 interface Product {
   id: number;
@@ -8,20 +11,21 @@ interface Product {
   quantity: number;
 }
 
-const ProductList: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-//   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchText, setSearchText] = useState<string>(''); // State cho ô tìm kiếm
-  const [page, setPage] = useState<number>(1); // State cho phân trang
-  const [pageSize] = useState<number>(10); // Số sản phẩm trên mỗi trang
-  const [total, setTotal] = useState<number>(0); // Tổng số sản phẩm
-  const [order,] = useState<string>('asc'); // Thứ tự sắp xếp (asc/desc)
+interface ProductListProps {
+  onAddToCart: (product: Product) => void;
+}
 
-  // Hàm gọi API tìm kiếm sản phẩm
+const ProductList: React.FC<ProductListProps> = ({ onAddToCart }) => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [searchText, setSearchText] = useState<string>('');
+  const [page, setPage] = useState<number>(1);
+  const [pageSize] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
+  const [order, setOrder] = useState<string>('asc');
+
   const fetchProducts = async (nameProduct: string, page: number, pageSize: number, order: string) => {
     try {
-    //   setLoading(true);
       const response = await axios.get('http://localhost:8080/products/search', {
         params: {
           page,
@@ -30,53 +34,36 @@ const ProductList: React.FC = () => {
           order,
         },
       });
-      console.log('API Response:', response.data); // Kiểm tra dữ liệu trả về
-      setProducts(response.data.data); // Dữ liệu sản phẩm
-      setTotal(response.data.total); // Tổng số sản phẩm
-    //   setLoading(false);
+      setProducts(response.data.data);
+      setTotal(response.data.total);
     } catch (err) {
       setError('Failed to fetch products');
-    //   setLoading(false);
     }
   };
 
-  // Gọi API khi page, searchText, pageSize, hoặc order thay đổi
   useEffect(() => {
     fetchProducts(searchText, page, pageSize, order);
   }, [searchText, page, pageSize, order]);
 
-  // Xử lý khi người dùng nhấn nút Search
   const handleSearch = () => {
-    setPage(1); // Reset về trang đầu tiên khi tìm kiếm
+    setPage(1);
     fetchProducts(searchText, 1, pageSize, order);
   };
 
-  // Xử lý khi chuyển trang
-  const handleNextPage = () => {
-    if (page * pageSize < total) {
-      setPage((prevPage) => prevPage + 1);
-    }
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
   };
 
-  const handlePreviousPage = () => {
-    if (page > 1) {
-      setPage((prevPage) => prevPage - 1);
-    }
+  const handleOrderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setOrder(e.target.value);
   };
 
-  // Xử lý khi thay đổi thứ tự sắp xếp
-  // const handleOrderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-  //   setOrder(e.target.value);
-  // };
-
-//   if (loading) return <p>Loading products...</p>;
   if (error) return <p>{error}</p>;
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
       <h1>Product List</h1>
-      {/* Ô tìm kiếm, nút Search và sắp xếp */}
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: '20px', textAlign: 'center' }}>
         <input
           type="text"
           placeholder="Search products..."
@@ -84,51 +71,56 @@ const ProductList: React.FC = () => {
           onChange={(e) => setSearchText(e.target.value)}
           style={{ padding: '10px', width: '300px', marginRight: '10px' }}
         />
-        <button onClick={handleSearch} style={{ padding: '10px 20px', marginRight: '10px' }}>
+        <Button variant="contained" onClick={handleSearch}>
           Search
-        </button>
-        {/* <select value={order} onChange={handleOrderChange} style={{ padding: '10px' }}>
+        </Button>
+        <select
+          value={order}
+          onChange={handleOrderChange}
+          style={{ marginLeft: '10px', padding: '10px' }}
+        >
           <option value="asc">Ascending</option>
           <option value="desc">Descending</option>
-        </select> */}
+        </select>
       </div>
-      <table>
+      <table style={{ borderCollapse: 'collapse', width: '80%', textAlign: 'center' }}>
         <thead>
           <tr>
             <th>ID</th>
             <th>Name</th>
             <th>Unit Price</th>
             <th>Quantity</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          {Array.isArray(products) && products.length > 0 ? (
-            products.map((product) => (
-              <tr key={product.id}>
-                <td>{product.id}</td>
-                <td>{product.name}</td>
-                <td>${product.unitPrice}</td>
-                <td>{product.quantity}</td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={4}>No products found</td>
+          {products.map((product) => (
+            <tr key={product.id}>
+              <td>{product.id}</td>
+              <td>{product.name}</td>
+              <td>${product.unitPrice}</td>
+              <td>{product.quantity}</td>
+              <td>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<AddShoppingCartIcon />}
+                  onClick={() => onAddToCart(product)}
+                >
+                  Order
+                </Button>
+              </td>
             </tr>
-          )}
+          ))}
         </tbody>
       </table>
-      {/* Phân trang */}
-      <div style={{ marginTop: '20px' }}>
-        <button onClick={handlePreviousPage} disabled={page === 1}>
-          Previous
-        </button>
-        <span style={{ margin: '0 10px' }}>
-          Page {page} of {Math.ceil(total / pageSize)}
-        </span>
-        <button onClick={handleNextPage} disabled={page * pageSize >= total}>
-          Next
-        </button>
+      <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
+        <Pagination
+          count={Math.ceil(total / pageSize)}
+          page={page}
+          onChange={handlePageChange}
+          color="primary"
+        />
       </div>
     </div>
   );
