@@ -17,26 +17,37 @@ export class OrderService {
 
     public async createOrder(orderData: any) {
         const { customerId, shipperId, orderDetails } = orderData;
-
+    
+        // Kiểm tra tồn kho
+        for (const detail of orderDetails) {
+          const product = await this.orderRepository.fetchProductById(detail.productId);
+          if (!product || product.quantity < detail.quantity) {
+            throw new Error(`Product ${detail.productId} does not have enough stock.`);
+          }
+        }
+    
         // Tạo đơn hàng
         const order = await this.orderRepository.createOrder({
-            CustomerId: customerId,
-            ShipperId: shipperId,
-            OrderDate: new Date(),
+          CustomerId: customerId,
+          ShipperId: shipperId,
+          OrderDate: new Date(),
         });
-
-        // Tạo chi tiết đơn hàng
+    
+        // Tạo chi tiết đơn hàng và cập nhật tồn kho
         for (const detail of orderDetails) {
-            await this.orderRepository.createOrderDetail({
-                OrderId: order.id,
-                ProductId: detail.productId,
-                Quantity: detail.quantity,
-                Price: detail.price,
-            });
+          await this.orderRepository.createOrderDetail({
+            OrderId: order.id,
+            ProductId: detail.productId,
+            Quantity: detail.quantity,
+            Price: detail.price,
+          });
+    
+          // Cập nhật tồn kho
+          await this.orderRepository.updateProductStock(detail.productId, -detail.quantity);
         }
-
+    
         return order;
-    }
+      }
     
 
     public async deleteOrderById(id: number) {

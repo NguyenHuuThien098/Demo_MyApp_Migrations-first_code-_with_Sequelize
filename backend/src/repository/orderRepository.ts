@@ -35,6 +35,11 @@ export class OrderRepository {
     });
   }
 
+
+  public async fetchProductById(productId: number) {
+    return await db.Product.findByPk(productId);
+  }
+
   public async createOrder(orderData: any) {
     return await Order.create(orderData);
   }
@@ -43,6 +48,15 @@ export class OrderRepository {
     return await OrderDetail.create(orderDetailData);
   }
   
+
+  public async updateProductStock(productId: number, quantityChange: number) {
+    const product = await db.Product.findByPk(productId);
+    if (product) {
+      product.quantity += quantityChange;
+      await product.save();
+    }
+  }
+
   public async deleteOrderById(id: number) {
     return await Order.destroy({ where: { id } });
   }
