@@ -9,6 +9,7 @@ import Button from '@mui/material/Button';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import Box from '@mui/material/Box';
 import NoImageIcon from '@mui/icons-material/Image';
+import { useMediaQuery, useTheme } from '@mui/material';
 
 interface Product {
   id: number;
@@ -27,6 +28,8 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
   // Kiểm tra xem có imageUrl hay không
   const hasImage = Boolean(product.imageUrl);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
     <Card sx={{ 
@@ -45,7 +48,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
           // Hiển thị hình ảnh nếu có
           <CardMedia
             component="img"
-            height="200"
+            height={isMobile ? "150" : "200"}
             image={product.imageUrl}
             alt={product.name}
             sx={{ objectFit: 'cover' }}
@@ -54,47 +57,87 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
           // Hiển thị placeholder nếu không có hình ảnh
           <Box 
             sx={{ 
-              height: 200, 
+              height: isMobile ? 150 : 200, 
               backgroundColor: '#f0f0f0', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center'
             }}
           >
-            <NoImageIcon sx={{ fontSize: 80, color: '#bdbdbd' }} />
+            <NoImageIcon sx={{ fontSize: isMobile ? 60 : 80, color: '#bdbdbd' }} />
           </Box>
         )}
-        <CardContent sx={{ flexGrow: 1 }}>
-          <Typography gutterBottom variant="h6" component="div" noWrap>
+        <CardContent sx={{ 
+          flexGrow: 1, 
+          p: isMobile ? 1.5 : 2,
+          '&:last-child': { 
+            paddingBottom: isMobile ? 1.5 : 2 
+          }
+        }}>
+          <Typography 
+            gutterBottom 
+            variant={isMobile ? "subtitle1" : "h6"} 
+            component="div" 
+            noWrap
+            sx={{
+              fontSize: isMobile ? '0.95rem' : undefined,
+              fontWeight: 'bold'
+            }}
+          >
             {product.name}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ 
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            mb: 2
-          }}>
+          <Typography 
+            variant="body2" 
+            color="text.secondary" 
+            sx={{ 
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              mb: 2,
+              fontSize: isMobile ? '0.75rem' : '0.875rem',
+              lineHeight: isMobile ? '1.3' : '1.43'
+            }}
+          >
             {product.description || 'High quality product with excellent features.'}
           </Typography>
-          <Typography variant="h6" color="primary">
+          <Typography 
+            variant={isMobile ? "subtitle2" : "h6"} 
+            color="primary"
+            sx={{
+              fontSize: isMobile ? '1rem' : undefined,
+              fontWeight: 'bold'
+            }}
+          >
             ${product.unitPrice}
           </Typography>
-          <Typography variant="caption" color={product.quantity > 0 ? "success.main" : "error.main"}>
+          <Typography 
+            variant="caption" 
+            color={product.quantity > 0 ? "success.main" : "error.main"}
+            sx={{ 
+              display: 'block',
+              fontSize: isMobile ? '0.7rem' : '0.75rem',
+              mt: 0.5
+            }}
+          >
             {product.quantity > 0 ? `In Stock: ${product.quantity}` : "Out of Stock"}
           </Typography>
         </CardContent>
       </CardActionArea>
-      <CardActions>
+      <CardActions sx={{ padding: isMobile ? 1 : 1.5 }}>
         <Button 
-          size="small" 
+          size={isMobile ? "small" : "medium"} 
           fullWidth
           variant="contained"
           color="primary"
-          startIcon={<AddShoppingCartIcon />}
+          startIcon={<AddShoppingCartIcon fontSize={isMobile ? "small" : "medium"} />}
           onClick={() => onAddToCart(product)}
           disabled={product.quantity <= 0}
+          sx={{
+            py: isMobile ? 0.5 : 0.75,
+            fontSize: isMobile ? '0.75rem' : undefined
+          }}
         >
           Add to Cart
         </Button>

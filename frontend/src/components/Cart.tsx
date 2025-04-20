@@ -20,6 +20,7 @@ import Avatar from '@mui/material/Avatar';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import Badge from '@mui/material/Badge';
+import { useMediaQuery, useTheme } from '@mui/material';
 
 interface CartProps {
     items: {
@@ -47,6 +48,8 @@ const Cart: React.FC<CartProps> = ({
     const [selectedPayment, setSelectedPayment] = useState<string>('online');
     const [showStickyTotal, setShowStickyTotal] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     const unpurchasedItems = items.filter(item => !item.isPurchased);
 
@@ -114,7 +117,7 @@ const Cart: React.FC<CartProps> = ({
     };
 
     return (
-        <Box sx={{ width: '100%', position: 'relative', pb: 15 }} ref={contentRef}>
+        <Box sx={{ width: '100%', position: 'relative', pb: { xs: 12, sm: 15 } }} ref={contentRef}>
             {/* Header cố định */}
             <Box sx={{ 
                 position: 'sticky',
@@ -122,7 +125,7 @@ const Cart: React.FC<CartProps> = ({
                 bgcolor: 'background.paper',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                 zIndex: 10,
-                p: 2,
+                p: { xs: 1.5, sm: 2 },
                 mb: 2,
                 borderRadius: 1
             }}>
@@ -133,13 +136,20 @@ const Cart: React.FC<CartProps> = ({
                 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Badge badgeContent={calculateTotalItems()} color="primary" sx={{ mr: 1.5 }}>
-                            <ShoppingCartIcon fontSize="small" />
+                            <ShoppingCartIcon fontSize={isMobile ? "small" : "medium"} />
                         </Badge>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        <Typography variant="subtitle1" sx={{ 
+                            fontWeight: 600,
+                            fontSize: { xs: '0.875rem', sm: '1rem' }
+                        }}>
                             Cart Summary
                         </Typography>
                     </Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                    <Typography variant="subtitle2" sx={{ 
+                        fontWeight: 700, 
+                        color: 'primary.main',
+                        fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                    }}>
                         ${calculateTotal().toFixed(2)}
                     </Typography>
                 </Box>
@@ -147,21 +157,26 @@ const Cart: React.FC<CartProps> = ({
 
             {items.length === 0 ? (
                 <Box sx={{
-                    py: 4,
+                    py: { xs: 3, sm: 4 },
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center'
                 }}>
                     <Avatar sx={{
-                        width: 64,
-                        height: 64,
+                        width: { xs: 48, sm: 64 },
+                        height: { xs: 48, sm: 64 },
                         bgcolor: 'primary.light',
                         mb: 2
                     }}>
-                        <ShoppingCartIcon fontSize="large" />
+                        <ShoppingCartIcon fontSize={isMobile ? "medium" : "large"} />
                     </Avatar>
-                    <Typography variant="body1" color="text.secondary" align="center">
+                    <Typography 
+                        variant="body1" 
+                        color="text.secondary" 
+                        align="center"
+                        sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                    >
                         Your cart is empty.
                     </Typography>
                 </Box>
@@ -169,7 +184,14 @@ const Cart: React.FC<CartProps> = ({
                 <>
                     {unpurchasedItems.length > 0 && (
                         <>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                            <Typography 
+                                variant="body2" 
+                                color="text.secondary" 
+                                sx={{ 
+                                    mb: 1.5,
+                                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                }}
+                            >
                                 {unpurchasedItems.length} {unpurchasedItems.length === 1 ? 'item' : 'items'} in cart
                             </Typography>
 
@@ -188,33 +210,74 @@ const Cart: React.FC<CartProps> = ({
                                         }
                                     }}
                                 >
-                                    <Box sx={{ display: 'flex', alignItems: 'center', p: 1.5 }}>
+                                    <Box sx={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        p: { xs: 1, sm: 1.5 },
+                                        flexWrap: { xs: 'wrap', sm: 'nowrap' }
+                                    }}>
                                         {item.imageUrl ? (
                                             <Avatar
                                                 src={item.imageUrl}
                                                 alt={item.name}
                                                 variant="rounded"
-                                                sx={{ width: 50, height: 50, mr: 1.5 }}
+                                                sx={{ 
+                                                    width: { xs: 40, sm: 50 }, 
+                                                    height: { xs: 40, sm: 50 }, 
+                                                    mr: { xs: 1, sm: 1.5 },
+                                                    flexShrink: 0
+                                                }}
                                             />
                                         ) : (
                                             <Avatar
                                                 variant="rounded"
-                                                sx={{ width: 50, height: 50, mr: 1.5, bgcolor: 'primary.main' }}
+                                                sx={{ 
+                                                    width: { xs: 40, sm: 50 }, 
+                                                    height: { xs: 40, sm: 50 }, 
+                                                    mr: { xs: 1, sm: 1.5 }, 
+                                                    bgcolor: 'primary.main',
+                                                    flexShrink: 0
+                                                }}
                                             >
                                                 {item.name.charAt(0)}
                                             </Avatar>
                                         )}
 
-                                        <Box sx={{ flexGrow: 1 }}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                                        <Box sx={{ 
+                                            flexGrow: 1,
+                                            width: { xs: 'calc(100% - 50px)', sm: 'auto' }
+                                        }}>
+                                            <Typography 
+                                                variant="subtitle2" 
+                                                sx={{ 
+                                                    fontWeight: 'bold',
+                                                    fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                                                }}
+                                            >
                                                 {item.name}
                                             </Typography>
 
-                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 0.5 }}>
-                                                <Typography variant="caption" color="text.secondary">
+                                            <Box sx={{ 
+                                                display: 'flex', 
+                                                justifyContent: 'space-between', 
+                                                alignItems: 'center', 
+                                                mt: 0.5 
+                                            }}>
+                                                <Typography 
+                                                    variant="caption" 
+                                                    color="text.secondary"
+                                                    sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                                                >
                                                     ${item.unitPrice} x {item.quantity}
                                                 </Typography>
-                                                <Typography variant="body2" color="primary.main" sx={{ fontWeight: 'bold' }}>
+                                                <Typography 
+                                                    variant="body2" 
+                                                    color="primary.main" 
+                                                    sx={{ 
+                                                        fontWeight: 'bold',
+                                                        fontSize: { xs: '0.75rem', sm: '0.8rem' }
+                                                    }}
+                                                >
                                                     ${(item.unitPrice * item.quantity).toFixed(2)}
                                                 </Typography>
                                             </Box>
@@ -228,7 +291,7 @@ const Cart: React.FC<CartProps> = ({
                                         justifyContent: 'space-between',
                                         alignItems: 'center',
                                         backgroundColor: 'background.default',
-                                        p: 0.75
+                                        p: { xs: 0.5, sm: 0.75 }
                                     }}>
                                         <IconButton
                                             size="small"
@@ -258,7 +321,13 @@ const Cart: React.FC<CartProps> = ({
                                             >
                                                 <RemoveIcon fontSize="small" />
                                             </IconButton>
-                                            <Typography sx={{ mx: 1.5, fontWeight: 'bold', fontSize: '0.75rem', minWidth: '18px', textAlign: 'center' }}>
+                                            <Typography sx={{ 
+                                                mx: { xs: 1, sm: 1.5 }, 
+                                                fontWeight: 'bold', 
+                                                fontSize: '0.75rem', 
+                                                minWidth: { xs: '16px', sm: '18px' }, 
+                                                textAlign: 'center' 
+                                            }}>
                                                 {item.quantity}
                                             </Typography>
                                             <IconButton
@@ -285,18 +354,59 @@ const Cart: React.FC<CartProps> = ({
                                     color: 'white',
                                     border: '1px solid',
                                     borderColor: 'primary.dark',
-                                    padding: 2,
+                                    padding: { xs: 1.5, sm: 2 },
                                     boxShadow: 2
                                 }}
                             >
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <ShoppingBagIcon sx={{ mr: 1, fontSize: 'small' }} />
-                                        <Typography variant="body2" sx={{ color: 'white' }}>
-                                            Subtotal ({calculateTotalItems()} items):
+                                <Box sx={{ 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between', 
+                                    alignItems: 'center',
+                                    flexDirection: { xs: 'column', sm: 'row' },
+                                    gap: { xs: 1, sm: 0 }
+                                }}>
+                                    <Box sx={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center',
+                                        width: { xs: '100%', sm: 'auto' },
+                                        justifyContent: { xs: 'space-between', sm: 'flex-start' }
+                                    }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <ShoppingBagIcon sx={{ 
+                                                mr: 1, 
+                                                fontSize: { xs: '0.875rem', sm: 'small' } 
+                                            }} />
+                                            <Typography 
+                                                variant="body2" 
+                                                sx={{ 
+                                                    color: 'white',
+                                                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                                }}
+                                            >
+                                                Subtotal ({calculateTotalItems()} items):
+                                            </Typography>
+                                        </Box>
+                                        <Typography 
+                                            variant="subtitle2" 
+                                            sx={{ 
+                                                fontWeight: 'bold', 
+                                                color: 'white',
+                                                fontSize: { xs: '0.875rem', sm: '1rem' },
+                                                display: { sm: 'none' }
+                                            }}
+                                        >
+                                            ${calculateTotal().toFixed(2)}
                                         </Typography>
                                     </Box>
-                                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'white' }}>
+                                    <Typography 
+                                        variant="subtitle2" 
+                                        sx={{ 
+                                            fontWeight: 'bold', 
+                                            color: 'white',
+                                            fontSize: { xs: '0.875rem', sm: '1rem' },
+                                            display: { xs: 'none', sm: 'block' }
+                                        }}
+                                    >
                                         ${calculateTotal().toFixed(2)}
                                     </Typography>
                                 </Box>
@@ -307,7 +417,7 @@ const Cart: React.FC<CartProps> = ({
                                     onClick={handleOpenDialog}
                                     sx={{
                                         mt: 1.5,
-                                        py: 0.75,
+                                        py: { xs: 0.5, sm: 0.75 },
                                         fontWeight: 'bold',
                                         bgcolor: 'white',
                                         color: 'primary.main',
@@ -315,7 +425,7 @@ const Cart: React.FC<CartProps> = ({
                                             bgcolor: 'rgba(255,255,255,0.9)',
                                         },
                                         textTransform: 'uppercase',
-                                        fontSize: '0.7rem',
+                                        fontSize: { xs: '0.65rem', sm: '0.7rem' },
                                     }}
                                 >
                                     CHECKOUT
@@ -338,10 +448,10 @@ const Cart: React.FC<CartProps> = ({
                             >
                                 <Box
                                     sx={{
-                                        padding: 1.5,
+                                        padding: { xs: 1, sm: 1.5 },
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        gap: 1,
+                                        gap: { xs: 0.5, sm: 1 },
                                     }}
                                 >
                                     <Box
@@ -352,12 +462,26 @@ const Cart: React.FC<CartProps> = ({
                                         }}
                                     >
                                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                            <ShoppingBagIcon sx={{ mr: 1, fontSize: 'small' }} />
-                                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                                            <ShoppingBagIcon sx={{ 
+                                                mr: 1, 
+                                                fontSize: { xs: '0.875rem', sm: 'small' } 
+                                            }} />
+                                            <Typography 
+                                                variant="body2" 
+                                                sx={{ 
+                                                    fontWeight: 'bold',
+                                                    fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                                                }}
+                                            >
                                                 Subtotal ({calculateTotalItems()} items):
                                             </Typography>
                                         </Box>
-                                        <Typography sx={{ fontWeight: 'bold' }}>
+                                        <Typography 
+                                            sx={{ 
+                                                fontWeight: 'bold',
+                                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                                            }}
+                                        >
                                             ${calculateTotal().toFixed(2)}
                                         </Typography>
                                     </Box>
@@ -367,7 +491,7 @@ const Cart: React.FC<CartProps> = ({
                                         fullWidth
                                         onClick={handleOpenDialog}
                                         sx={{
-                                            py: 0.75,
+                                            py: { xs: 0.5, sm: 0.75 },
                                             fontWeight: 'bold',
                                             backgroundColor: 'white',
                                             color: '#1890ff',
@@ -375,10 +499,10 @@ const Cart: React.FC<CartProps> = ({
                                                 backgroundColor: 'rgba(255,255,255,0.9)',
                                             },
                                             textTransform: 'uppercase',
-                                            fontSize: '0.7rem',
+                                            fontSize: { xs: '0.65rem', sm: '0.7rem' },
                                         }}
                                     >
-                                        PROCEED TO CHECKOUT
+                                        CHECKOUT
                                     </Button>
                                 </Box>
                             </Box>
@@ -388,7 +512,11 @@ const Cart: React.FC<CartProps> = ({
             )}
 
             {/* Payment Method Dialog */}
-            <Dialog open={openDialog} onClose={handleCloseDialog}>
+            <Dialog 
+                open={openDialog} 
+                onClose={handleCloseDialog} 
+                fullScreen={isMobile}
+            >
                 <DialogTitle>Choose Payment Method</DialogTitle>
                 <DialogContent>
                     <DialogContentText>

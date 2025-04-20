@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Button, Snackbar, Alert, Paper, Avatar, Divider, Stack, Badge } from '@mui/material';
+import { Typography, Button, Snackbar, Alert, Paper, Avatar, Divider, Stack, Badge, useMediaQuery } from '@mui/material';
 import Box from '@mui/material/Box';
 import { useCart } from '../contexts/CartContext';
 import { placeOrder } from '../services/orderService';
@@ -20,6 +20,7 @@ import { useNavigate } from 'react-router-dom';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket';
+import { useTheme } from '@mui/material/styles';
 
 const CartPage: React.FC = () => {
   const { cartItems, removeFromCart, updateQuantity, markAsPurchased } = useCart();
@@ -30,6 +31,8 @@ const CartPage: React.FC = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const navigate = useNavigate();
   const [showStickyTotal, setShowStickyTotal] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   // Filter items
   const unpurchasedItems = cartItems.filter(item => !item.isPurchased);
@@ -47,11 +50,11 @@ const CartPage: React.FC = () => {
   // Handle scroll to show/hide sticky total - Giữ nguyên logic hiện tại
   useEffect(() => {
     setShowStickyTotal(false);
-
+    
     const handleScroll = () => {
-      setShowStickyTotal(window.scrollY > 50);
+      setShowStickyTotal(window.scrollY > 150);
     };
-
+  
     window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -102,9 +105,9 @@ const CartPage: React.FC = () => {
   const goToDashboard = () => navigate('/dashboard');
 
   return (
-    <Box sx={{ padding: 0 }}>
+    <Box sx={{ padding: { xs: 1, sm: 2, md: 3 } }}>
       {/* Thanh tổng quan cố định ở đầu trang */}
-      <Box sx={{
+      <Box sx={{ 
         position: 'sticky',
         top: 0,
         bgcolor: 'background.paper',
@@ -112,30 +115,45 @@ const CartPage: React.FC = () => {
         zIndex: 10,
         borderBottom: '1px solid',
         borderColor: 'divider',
-        px: 3,
+        px: { xs: 2, sm: 3 },
         py: 2,
         mb: 2
       }}>
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          flexWrap: { xs: 'wrap', sm: 'nowrap' },
+          gap: { xs: 1, sm: 0 }
         }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            width: { xs: '100%', sm: 'auto' }
+          }}>
             <Badge badgeContent={calculateTotalItems()} color="primary" sx={{ mr: 2 }}>
               <ShoppingBasketIcon color="action" />
             </Badge>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
               Your Shopping Cart
             </Typography>
           </Box>
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack 
+            direction="row" 
+            spacing={1} 
+            alignItems="center"
+            sx={{ 
+              width: { xs: '100%', sm: 'auto' },
+              justifyContent: { xs: 'flex-end', sm: 'flex-start' },
+              mt: { xs: 1, sm: 0 }
+            }}
+          >
             <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'primary.main' }}>
               ${calculateTotal().toFixed(2)}
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
+            <Button 
+              variant="contained" 
+              color="primary" 
               size="small"
               endIcon={<ArrowForwardIcon />}
               onClick={handleOpenDialog}
@@ -147,10 +165,10 @@ const CartPage: React.FC = () => {
         </Box>
       </Box>
 
-      <Box sx={{ padding: 3, pt: 0 }}>
+      <Box sx={{ padding: { xs: 1, sm: 2, md: 3 }, pt: 0 }}>
         {unpurchasedItems.length === 0 && (
-          <Paper elevation={2} sx={{ py: 8, px: 3, textAlign: 'center', borderRadius: 3 }}>
-            <ShoppingCartIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
+          <Paper elevation={2} sx={{ py: { xs: 6, sm: 8 }, px: { xs: 2, sm: 3 }, textAlign: 'center', borderRadius: 3 }}>
+            <ShoppingCartIcon sx={{ fontSize: { xs: 60, sm: 80 }, color: 'text.secondary', mb: 2 }} />
             <Typography variant="h5" color="text.secondary" gutterBottom>
               Your cart is empty
             </Typography>
@@ -171,13 +189,13 @@ const CartPage: React.FC = () => {
         {/* Sản phẩm chưa mua */}
         {unpurchasedItems.length > 0 && (
           <>
-            <Box sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
               alignItems: 'center',
-              mb: 2
+              mb: 2 
             }}>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                 Items in Your Cart
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -185,7 +203,7 @@ const CartPage: React.FC = () => {
               </Typography>
             </Box>
 
-            <Box sx={{ pb: 16 }}> {/* Add padding bottom for space when sticky footer appears */}
+            <Box sx={{ pb: { xs: 12, sm: 16 } }}> {/* Add padding bottom for space when sticky footer appears */}
               {unpurchasedItems.map((item) => (
                 <Paper
                   key={item.id}
@@ -200,33 +218,66 @@ const CartPage: React.FC = () => {
                     }
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    p: { xs: 1.5, sm: 2 },
+                    flexWrap: { xs: 'wrap', sm: 'nowrap' },
+                    gap: { xs: 1, sm: 0 }
+                  }}>
                     {item.imageUrl ? (
                       <Avatar
                         src={item.imageUrl}
                         alt={item.name}
                         variant="rounded"
-                        sx={{ width: 60, height: 60, mr: 2 }}
+                        sx={{ 
+                          width: { xs: 50, sm: 60 }, 
+                          height: { xs: 50, sm: 60 }, 
+                          mr: { xs: 1, sm: 2 },
+                          flexShrink: 0
+                        }}
                       />
                     ) : (
                       <Avatar
                         variant="rounded"
-                        sx={{ width: 60, height: 60, mr: 2, bgcolor: 'primary.main' }}
+                        sx={{ 
+                          width: { xs: 50, sm: 60 }, 
+                          height: { xs: 50, sm: 60 }, 
+                          mr: { xs: 1, sm: 2 },
+                          bgcolor: 'primary.main',
+                          flexShrink: 0
+                        }}
                       >
                         {item.name.charAt(0)}
                       </Avatar>
                     )}
 
-                    <Box sx={{ flexGrow: 1 }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                    <Box sx={{ flexGrow: 1, width: { xs: '100%', sm: 'auto' } }}>
+                      <Typography variant="subtitle1" sx={{ 
+                        fontWeight: 'bold',
+                        fontSize: { xs: '0.9rem', sm: '1rem' },
+                        mt: { xs: 1, sm: 0 }
+                      }}>
                         {item.name}
                       </Typography>
 
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-                        <Typography variant="body2" color="text.secondary">
+                      <Box sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center', 
+                        mt: 1 
+                      }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                           ${item.unitPrice} x {item.quantity}
                         </Typography>
-                        <Typography variant="subtitle2" color="primary.main" sx={{ fontWeight: 'bold' }}>
+                        <Typography 
+                          variant="subtitle2" 
+                          color="primary.main" 
+                          sx={{ 
+                            fontWeight: 'bold',
+                            fontSize: { xs: '0.8rem', sm: '0.875rem' } 
+                          }}
+                        >
                           ${(item.unitPrice * item.quantity).toFixed(2)}
                         </Typography>
                       </Box>
@@ -242,6 +293,7 @@ const CartPage: React.FC = () => {
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
                             WebkitBoxOrient: 'vertical',
+                            fontSize: { xs: '0.75rem', sm: '0.875rem' }
                           }}
                         >
                           {item.description}
@@ -257,18 +309,19 @@ const CartPage: React.FC = () => {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     backgroundColor: 'background.default',
-                    p: 1
+                    p: { xs: 0.75, sm: 1 }
                   }}>
                     <IconButton
                       color="error"
                       onClick={() => removeFromCart(item.id)}
+                      size={isMobile ? "small" : "medium"}
                       sx={{
                         '&:hover': {
                           backgroundColor: 'rgba(211, 47, 47, 0.04)'
                         }
                       }}
                     >
-                      <DeleteIcon />
+                      <DeleteIcon fontSize={isMobile ? "small" : "medium"} />
                     </IconButton>
 
                     <Box sx={{
@@ -280,7 +333,7 @@ const CartPage: React.FC = () => {
                       borderColor: 'divider'
                     }}>
                       <IconButton
-                        size="small"
+                        size={isMobile ? "small" : "medium"}
                         onClick={() => {
                           if (item.quantity > 1) {
                             updateQuantity(item.id, item.quantity - 1);
@@ -290,22 +343,99 @@ const CartPage: React.FC = () => {
                         }}
                         color="primary"
                       >
-                        <RemoveIcon fontSize="small" />
+                        <RemoveIcon fontSize={isMobile ? "small" : "medium"} />
                       </IconButton>
-                      <Typography sx={{ mx: 2, fontWeight: 'bold', minWidth: '24px', textAlign: 'center' }}>
+                      <Typography sx={{ 
+                        mx: { xs: 1, sm: 2 }, 
+                        fontWeight: 'bold', 
+                        minWidth: '24px', 
+                        textAlign: 'center',
+                        fontSize: { xs: '0.8rem', sm: '1rem' }
+                      }}>
                         {item.quantity}
                       </Typography>
                       <IconButton
-                        size="small"
+                        size={isMobile ? "small" : "medium"}
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
                         color="primary"
                       >
-                        <AddIcon fontSize="small" />
+                        <AddIcon fontSize={isMobile ? "small" : "medium"} />
                       </IconButton>
                     </Box>
                   </Box>
                 </Paper>
               ))}
+            </Box>
+
+            {/* Subtotal section - đã loại bỏ CardContent */}
+            <Box 
+              id="subtotal-section"
+              sx={{
+                mt: 3,
+                mb: 4,
+                borderRadius: 2,
+                background: 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+                color: 'white',
+                position: 'relative',
+                zIndex: 1,
+                padding: { xs: 2, sm: 3 },
+                boxShadow: 3
+              }}
+            >
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                flexDirection: { xs: 'column', sm: 'row' },
+                gap: { xs: 1, sm: 0 }
+              }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  width: { xs: '100%', sm: 'auto' }
+                }}>
+                  <ShoppingBagIcon sx={{ mr: 1 }} />
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      color: 'white',
+                      fontSize: { xs: '1rem', sm: '1.25rem' }
+                    }}
+                  >
+                    Subtotal ({calculateTotalItems()} items):
+                  </Typography>
+                </Box>
+                <Typography 
+                  variant="h5" 
+                  sx={{ 
+                    fontWeight: 'bold', 
+                    color: 'white',
+                    fontSize: { xs: '1.25rem', sm: '1.5rem' }
+                  }}
+                >
+                  ${calculateTotal().toFixed(2)}
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                size="large"
+                fullWidth
+                onClick={handleOpenDialog}
+                sx={{
+                  mt: 2,
+                  py: { xs: 1, sm: 1.5 },
+                  fontWeight: 'bold',
+                  bgcolor: 'white',
+                  color: 'primary.main',
+                  '&:hover': {
+                    bgcolor: 'rgba(255,255,255,0.9)',
+                  },
+                  textTransform: 'uppercase',
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                }}
+              >
+                PROCEED TO CHECKOUT
+              </Button>
             </Box>
 
             {/* Sticky subtotal ở cuối trang - giữ nguyên tính năng khi cuộn */}
@@ -332,10 +462,10 @@ const CartPage: React.FC = () => {
                   flexDirection: { xs: 'column', sm: 'row' },
                   justifyContent: 'space-between',
                   alignItems: { xs: 'stretch', sm: 'center' },
-                  padding: 2,
+                  padding: { xs: 1.5, sm: 2 },
                   maxWidth: 1200,
                   mx: 'auto',
-                  gap: 2,
+                  gap: { xs: 1, sm: 2 }
                 }}
               >
                 <Box
@@ -346,23 +476,35 @@ const CartPage: React.FC = () => {
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <ShoppingBagIcon sx={{ mr: 1, color: 'white' }} />
-                    <Typography sx={{ fontWeight: 'bold', color: 'white' }}>
+                    <ShoppingBagIcon sx={{ mr: 1, color: 'white', fontSize: { xs: '1rem', sm: '1.25rem' } }} />
+                    <Typography sx={{ 
+                      fontWeight: 'bold', 
+                      color: 'white',
+                      fontSize: { xs: '0.8rem', sm: '1rem' }
+                    }}>
                       Subtotal ({calculateTotalItems()} items):
                     </Typography>
                   </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'white', ml: 2 }}>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      fontWeight: 'bold', 
+                      color: 'white', 
+                      ml: 2,
+                      fontSize: { xs: '1rem', sm: '1.25rem' } 
+                    }}
+                  >
                     ${calculateTotal().toFixed(2)}
                   </Typography>
                 </Box>
 
                 <Button
                   variant="contained"
-                  fullWidth={window.innerWidth < 600}
+                  fullWidth={isMobile}
                   onClick={handleOpenDialog}
                   sx={{
-                    py: 1.2,
-                    px: 4,
+                    py: { xs: 0.75, sm: 1.2 },
+                    px: { xs: 2, sm: 4 },
                     fontWeight: 'bold',
                     backgroundColor: 'white',
                     color: '#1890ff',
@@ -370,7 +512,7 @@ const CartPage: React.FC = () => {
                       backgroundColor: 'rgba(255,255,255,0.9)',
                     },
                     textTransform: 'uppercase',
-                    fontSize: '0.9rem',
+                    fontSize: { xs: '0.75rem', sm: '0.9rem' },
                     letterSpacing: '1px',
                   }}
                 >
@@ -383,7 +525,11 @@ const CartPage: React.FC = () => {
       </Box>
 
       {/* Payment Method Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
+      <Dialog 
+        open={openDialog} 
+        onClose={handleCloseDialog}
+        fullScreen={isMobile}
+      >
         <DialogTitle>Choose Payment Method</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -411,7 +557,10 @@ const CartPage: React.FC = () => {
         open={snackbarOpen}
         autoHideDuration={3000}
         onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ 
+          vertical: isMobile ? 'top' : 'bottom', 
+          horizontal: 'right' 
+        }}
       >
         <Alert
           onClose={() => setSnackbarOpen(false)}
