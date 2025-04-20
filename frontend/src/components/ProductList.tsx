@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -6,14 +6,12 @@ import Typography from '@mui/material/Typography';
 import Pagination from '@mui/material/Pagination';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import Box from '@mui/material/Box';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
+import Alert from '@mui/material/Alert';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import Paper from '@mui/material/Paper';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import SearchIcon from '@mui/icons-material/Search';
+import InputAdornment from '@mui/material/InputAdornment';
 
 interface Product {
   id: number;
@@ -33,157 +31,176 @@ const ProductList: React.FC<ProductListProps> = ({ onAddToCart }) => {
   const [page, setPage] = useState<number>(1);
   const [pageSize] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
-  const [openDialog, setOpenDialog] = useState<boolean>(false);
-  const [selectedPayment, setSelectedPayment] = useState<string>('online');
 
-  const fetchProducts = async (nameProduct: string, page: number, pageSize: number) => {
+  const fetchProducts = useCallback(async () => {
+    setError(null);
+    
     try {
       const response = await axios.get('http://localhost:8080/products/search', {
         params: {
           page,
           pageSize,
-          nameProduct,
+          nameProduct: searchText,
         },
       });
       setProducts(response.data.data);
       setTotal(response.data.total);
     } catch (err) {
-      setError('Failed to fetch products');
+      // Xử lý các loại lỗi khác nhau
+      if (axios.isAxiosError(err)) {
+        if (err.code === 'ECONNABORTED') {
+          setError('Connection timeout. Please try again.');
+        } else if (err.response?.status === 404) {
+          setError('Products not found. Try a different search term.');
+        } else if (err.response?.status === 500) {
+          setError('Server error. Our team has been notified.');
+        } else if (!navigator.onLine) {
+          setError('You appear to be offline. Please check your internet connection.');
+        } else {
+          setError('Failed to fetch products. Please try again later.');
+        }
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
     }
-  };
+  }, [page, pageSize, searchText]);
 
   useEffect(() => {
-    fetchProducts(searchText, page, pageSize);
-  }, [searchText, page, pageSize]);
+    fetchProducts();
+  }, [fetchProducts]);
 
   const handleSearch = () => {
     setPage(1);
-    fetchProducts(searchText, 1, pageSize);
+    fetchProducts();
+  };
+
+  // Xử lý sự kiện khi nhấn Enter trong input search
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
   };
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
 
-  const handleBuy = async () => {
-    try {
-      // Gửi API thanh toán
-      const response = await axios.post('http://localhost:8080/checkout', {
-        paymentMethod: selectedPayment,
-      });
-      console.log('Payment successful:', response.data);
-      setOpenDialog(false); // Đóng dialog sau khi thanh toán thành công
-    } catch (err) {
-      console.error('Payment failed:', err);
-    }
-  };
-
-  const handleOpenDialog = () => {
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-  };
-
-  const handlePaymentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedPayment(event.target.value);
-  };
-
-  if (error) return <p>{error}</p>;
-
   return (
-    <Box sx={{ padding: 3, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      {/* Header */}
-      <Typography variant="h4" align="center" gutterBottom>
-        Product List
-      </Typography>
-
-      {/* Search Bar */}
-      <Box sx={{ display: 'flex', gap: 2, marginBottom: 3, width: '100%', maxWidth: '800px' }}>
-        <TextField
-          fullWidth
-          label="Search products"
-          variant="outlined"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-        />
-        <Button variant="contained" onClick={handleSearch} sx={{ whiteSpace: 'nowrap' }}>
-          Search
-        </Button>
-      </Box>
-
-      {/* Product Table */}
-      <Box sx={{ width: '100%', maxWidth: '800px', overflowX: 'auto', marginBottom: 3 }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Unit Price</th>
-              <th>Quantity</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((product) => (
-              <tr key={product.id}>
-                <td>{product.id}</td>
-                <td>{product.name}</td>
-                <td>${product.unitPrice}</td>
-                <td>{product.quantity}</td>
-                <td>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<AddShoppingCartIcon />}
-                    onClick={() => onAddToCart(product)}
-                  >
-                    Order
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Box>
-
-      {/* Pagination */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-        <Pagination
-          count={Math.ceil(total / pageSize)}
-          page={page}
-          onChange={handlePageChange}
-          color="primary"
-        />
-      </Box>
-
-      {/* Buy Button */}
-      <Box sx={{ marginTop: 3 }}>
-        <Button variant="contained" color="success" onClick={handleOpenDialog}>
-          Buy
-        </Button>
-      </Box>
-
-      {/* Payment Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>Choose Payment Method</DialogTitle>
-        <DialogContent>
-          <DialogContentText>Select your preferred payment method:</DialogContentText>
-          <RadioGroup value={selectedPayment} onChange={handlePaymentChange}>
-            <FormControlLabel value="online" control={<Radio />} label="Online Payment" />
-            <FormControlLabel value="cash" control={<Radio />} label="Cash on Delivery" />
-            <FormControlLabel value="credit" control={<Radio />} label="Credit Card" />
-          </RadioGroup>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleBuy} variant="contained" color="primary">
-            Confirm
+    <article>
+      <Box sx={{ padding: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        {/* Search Bar - Always show this */}
+        <Box component="section" sx={{ display: 'flex', gap: 2, marginBottom: 3, width: '100%', maxWidth: '800px' }}>
+          <TextField
+            fullWidth
+            label="Search products"
+            variant="outlined"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Button 
+            variant="contained" 
+            onClick={handleSearch} 
+            sx={{ whiteSpace: 'nowrap' }}
+          >
+            Search
           </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+        </Box>
+
+        {/* Error Message if applicable */}
+        {error && (
+          <Paper 
+            elevation={0} 
+            sx={{ 
+              width: '100%', 
+              maxWidth: '800px', 
+              mb: 3, 
+              p: 2, 
+              border: '1px solid #f1f1f1',
+              backgroundColor: '#FFEBEE' 
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <ErrorOutlineIcon color="error" />
+              <Typography variant="body1" color="error">{error}</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+              <Button 
+                startIcon={<RefreshIcon />} 
+                onClick={fetchProducts}
+                variant="outlined" 
+                color="error"
+              >
+                Try Again
+              </Button>
+            </Box>
+          </Paper>
+        )}
+
+        {/* Product Table */}
+        {products.length > 0 && (
+          <Box component="section" sx={{ width: '100%', maxWidth: '800px', overflowX: 'auto', marginBottom: 3 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Unit Price</th>
+                  <th>Quantity</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((product) => (
+                  <tr key={product.id}>
+                    <td>{product.id}</td>
+                    <td>{product.name}</td>
+                    <td>${product.unitPrice}</td>
+                    <td>{product.quantity}</td>
+                    <td>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<AddShoppingCartIcon />}
+                        onClick={() => onAddToCart(product)}
+                      >
+                        Order
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Box>
+        )}
+
+        {/* No Products Found Message */}
+        {!error && products.length === 0 && (
+          <Alert severity="info" sx={{ width: '100%', maxWidth: '800px', mb: 3 }}>
+            No products found. Try a different search term.
+          </Alert>
+        )}
+
+        {/* Pagination - Show only if there are products */}
+        {products.length > 0 && (
+          <Box component="nav" sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+            <Pagination
+              count={Math.ceil(total / pageSize)}
+              page={page}
+              onChange={handlePageChange}
+              color="primary"
+            />
+          </Box>
+        )}
+      </Box>
+    </article>
   );
 };
 
