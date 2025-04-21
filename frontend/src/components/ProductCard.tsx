@@ -11,6 +11,10 @@ import Box from '@mui/material/Box';
 import NoImageIcon from '@mui/icons-material/Image';
 import { useMediaQuery, useTheme } from '@mui/material';
 
+/**
+ * Cấu trúc dữ liệu sản phẩm
+ * Định nghĩa các thuộc tính cần thiết để hiển thị thẻ sản phẩm
+ */
 interface Product {
   id: number;
   name: string;
@@ -18,19 +22,36 @@ interface Product {
   quantity: number;
   description?: string;
   imageUrl?: string;
+  availableQuantity?: number; // Số lượng khả dụng (sau khi trừ trong giỏ hàng)
 }
 
+/**
+ * Props cho component ProductCard
+ */
 interface ProductCardProps {
   product: Product;
   onAddToCart: (product: Product) => void;
 }
 
+/**
+ * Component hiển thị sản phẩm dạng thẻ
+ * 
+ * Hiển thị thông tin chi tiết sản phẩm với thiết kế trực quan:
+ * - Hình ảnh/ảnh đại diện sản phẩm
+ * - Tên sản phẩm và mô tả ngắn gọn với xử lý tràn văn bản
+ * - Giá và số lượng tồn kho
+ * - Nút thêm vào giỏ hàng
+ * - Thiết kế responsive thay đổi theo kích thước màn hình
+ */
 const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
-  // Kiểm tra xem có imageUrl hay không
+  // Kiểm tra sản phẩm có hình ảnh hay không
   const hasImage = Boolean(product.imageUrl);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  // Xác định số lượng còn lại để hiển thị
+  const displayQuantity = product.availableQuantity !== undefined ? product.availableQuantity : product.quantity;
+  
   return (
     <Card sx={{ 
       maxWidth: '100%', 
@@ -44,8 +65,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
       }
     }}>
       <CardActionArea sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+        {/* Phần hình ảnh sản phẩm hoặc placeholder */}
         {hasImage ? (
-          // Hiển thị hình ảnh nếu có
           <CardMedia
             component="img"
             height={isMobile ? "150" : "200"}
@@ -54,7 +75,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
             sx={{ objectFit: 'cover' }}
           />
         ) : (
-          // Hiển thị placeholder nếu không có hình ảnh
           <Box 
             sx={{ 
               height: isMobile ? 150 : 200, 
@@ -67,6 +87,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
             <NoImageIcon sx={{ fontSize: isMobile ? 60 : 80, color: '#bdbdbd' }} />
           </Box>
         )}
+
+        {/* Phần thông tin chi tiết sản phẩm */}
         <CardContent sx={{ 
           flexGrow: 1, 
           p: isMobile ? 1.5 : 2,
@@ -74,6 +96,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
             paddingBottom: isMobile ? 1.5 : 2 
           }
         }}>
+          {/* Tên sản phẩm - hiển thị một dòng với xử lý tràn */}
           <Typography 
             gutterBottom 
             variant={isMobile ? "subtitle1" : "h6"} 
@@ -86,6 +109,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
           >
             {product.name}
           </Typography>
+
+          {/* Mô tả sản phẩm - giới hạn 3 dòng với dấu ... */}
           <Typography 
             variant="body2" 
             color="text.secondary" 
@@ -100,8 +125,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
               lineHeight: isMobile ? '1.3' : '1.43'
             }}
           >
-            {product.description || 'High quality product with excellent features.'}
+            {product.description || 'Sản phẩm chất lượng cao với những tính năng nổi bật.'}
           </Typography>
+
+          {/* Hiển thị giá sản phẩm */}
           <Typography 
             variant={isMobile ? "subtitle2" : "h6"} 
             color="primary"
@@ -112,19 +139,36 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
           >
             ${product.unitPrice}
           </Typography>
-          <Typography 
-            variant="caption" 
-            color={product.quantity > 0 ? "success.main" : "error.main"}
-            sx={{ 
-              display: 'block',
-              fontSize: isMobile ? '0.7rem' : '0.75rem',
-              mt: 0.5
-            }}
-          >
-            {product.quantity > 0 ? `In Stock: ${product.quantity}` : "Out of Stock"}
-          </Typography>
+
+          {/* Hiển thị tình trạng tồn kho */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 0.5 }}>
+            <Typography 
+              variant="caption" 
+              color={displayQuantity > 0 ? "success.main" : "error.main"}
+              sx={{ 
+                fontSize: isMobile ? '0.7rem' : '0.75rem'
+              }}
+            >
+              {displayQuantity > 0 ? `Còn hàng: ${displayQuantity}` : "Hết hàng"}
+            </Typography>
+
+            {/* Hiển thị tổng số lượng tồn kho gốc nếu có cả hai giá trị */}
+            {product.availableQuantity !== undefined && product.availableQuantity !== product.quantity && (
+              <Typography 
+                variant="caption" 
+                color="text.secondary"
+                sx={{ 
+                  fontSize: isMobile ? '0.7rem' : '0.75rem'
+                }}
+              >
+                (Tổng: {product.quantity})
+              </Typography>
+            )}
+          </Box>
         </CardContent>
       </CardActionArea>
+
+      {/* Nút thêm vào giỏ hàng */}
       <CardActions sx={{ padding: isMobile ? 1 : 1.5 }}>
         <Button 
           size={isMobile ? "small" : "medium"} 
@@ -133,13 +177,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
           color="primary"
           startIcon={<AddShoppingCartIcon fontSize={isMobile ? "small" : "medium"} />}
           onClick={() => onAddToCart(product)}
-          disabled={product.quantity <= 0}
+          disabled={displayQuantity <= 0}
           sx={{
             py: isMobile ? 0.5 : 0.75,
             fontSize: isMobile ? '0.75rem' : undefined
           }}
         >
-          Add to Cart
+          Thêm vào giỏ
         </Button>
       </CardActions>
     </Card>

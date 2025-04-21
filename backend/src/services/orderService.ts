@@ -18,12 +18,19 @@ export class OrderService {
     public async createOrder(orderData: any) {
         const { customerId, shipperId, orderDetails } = orderData;
     
-        // Kiểm tra tồn kho
+        // Kiểm tra tồn kho và lấy thông tin giá
         for (const detail of orderDetails) {
           const product = await this.orderRepository.fetchProductById(detail.productId);
-          if (!product || product.quantity < detail.quantity) {
-            throw new Error(`Product ${detail.productId} does not have enough stock.`);
+          if (!product) {
+            throw new Error(`Product with ID ${detail.productId} does not exist.`);
           }
+          
+          if (product.quantity < detail.quantity) {
+            throw new Error(`Product ${product.Name} (ID: ${detail.productId}) does not have enough stock. Available: ${product.quantity}, Requested: ${detail.quantity}`);
+          }
+          
+          // Lưu giá sản phẩm từ database để đảm bảo tính nhất quán
+          detail.price = product.UnitPrice;
         }
     
         // Tạo đơn hàng

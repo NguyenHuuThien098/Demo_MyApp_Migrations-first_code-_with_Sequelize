@@ -22,28 +22,49 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
+/**
+ * Chiều rộng của ngăn điều hướng (px)
+ * Được sử dụng để tính khoảng cách cho phần nội dung chính
+ */
 const drawerWidth = 240;
 
+/**
+ * Component bố cục chính cho toàn bộ ứng dụng
+ * 
+ * Cung cấp:
+ * - Thanh điều hướng bên có thể thu gọn trên thiết bị di động
+ * - Hiển thị số lượng sản phẩm trong giỏ hàng
+ * - Layout responsive cho cả di động và desktop
+ * - Điều hướng giữa các trang chính
+ */
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
+  // Quản lý trạng thái mở/đóng drawer trên thiết bị di động
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const { cartItems } = useCart();
   
-  // Đếm số sản phẩm trong giỏ hàng (chưa mua)
+  // Đếm số lượng sản phẩm chưa mua cho badge
   const cartItemCount = cartItems.filter(item => !item.isPurchased).length;
 
+  /**
+   * Chuyển đổi trạng thái đóng/mở của drawer trên di động
+   */
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
+  /**
+   * Cấu hình các mục trong menu điều hướng
+   * Mỗi mục định nghĩa văn bản hiển thị, biểu tượng và đường dẫn
+   */
   const menuItems = [
     {
-      text: 'Dashboard',
+      text: 'Trang chủ',
       icon: <DashboardIcon />,
       path: '/dashboard',
     },
     {
-      text: 'Cart',
+      text: 'Giỏ hàng',
       icon: (
         <Badge badgeContent={cartItemCount} color="error">
           <ShoppingCartIcon />
@@ -53,6 +74,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     },
   ];
 
+  /**
+   * Nội dung ngăn drawer được dùng chung cho cả mobile và desktop
+   */
   const drawer = (
     <div>
       <Toolbar>
@@ -81,6 +105,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   return (
     <Box sx={{ display: 'flex' }}>
+      {/* Thanh header - dịch sang phải trên desktop để nhường chỗ cho drawer cố định */}
       <AppBar
         position="fixed"
         sx={{
@@ -98,7 +123,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Product Management System
+            Hệ thống quản lý sản phẩm
           </Typography>
           <IconButton 
             color="inherit" 
@@ -116,13 +141,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
       >
-        {/* Mobile drawer */}
+        {/* Drawer cho thiết bị di động - tạm thời, đóng khi chọn mục */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile
+            keepMounted: true, // Tối ưu hiệu suất mở trên thiết bị di động
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
@@ -132,7 +157,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           {drawer}
         </Drawer>
 
-        {/* Desktop drawer */}
+        {/* Drawer cho desktop - cố định, luôn hiển thị */}
         <Drawer
           variant="permanent"
           sx={{
@@ -145,6 +170,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </Drawer>
       </Box>
 
+      {/* Vùng nội dung chính - điều chỉnh chiều rộng dựa trên trạng thái drawer */}
       <Box
         component="main"
         sx={{

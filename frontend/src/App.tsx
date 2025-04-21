@@ -2,11 +2,14 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardLayout from './components/DashboardLayout';
 import Dashboard from './pages/DashboardPage';
-import CartPage from './pages/CartPage'; // Đổi tên từ OrderPage
+import CartPage from './pages/CartPage'; 
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CartProvider } from './contexts/CartContext';
 
-// Tạo theme cơ bản
+/**
+ * Application theme configuration
+ * Defines primary and secondary color palette for consistent UI
+ */
 const theme = createTheme({
   palette: {
     primary: {
@@ -18,6 +21,13 @@ const theme = createTheme({
   },
 });
 
+/**
+ * Root application component that:
+ * - Provides MUI theme using ThemeProvider
+ * - Wraps the app with CartProvider for global state management
+ * - Configures routing with React Router
+ * - Renders the main layout with route components
+ */
 function App() {
   return (
     <ThemeProvider theme={theme}>

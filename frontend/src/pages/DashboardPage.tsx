@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Typography, TextField, InputAdornment, Button, Snackbar, Alert } from '@mui/material';
+import { Typography, TextField, InputAdornment, Button, Snackbar, Alert, Pagination, Stack } from '@mui/material';
 import Box from '@mui/material/Box';
 import SearchIcon from '@mui/icons-material/Search';
 import ProductCard from '../components/ProductCard';
 import { fetchProducts } from '../services/productService';
 import { useCart } from '../contexts/CartContext';
 
+/**
+ * Cấu trúc dữ liệu sản phẩm 
+ * Định nghĩa các thuộc tính cần thiết để hiển thị và thêm vào giỏ hàng
+ */
 interface Product {
   id: number;
   name: string;
@@ -13,62 +17,127 @@ interface Product {
   quantity: number;
   description?: string;
   imageUrl?: string;
+  availableQuantity?: number; // Số lượng còn có thể mua
 }
 
+/**
+ * Trang Dashboard - Trang chính của ứng dụng
+ * 
+ * Hiển thị danh sách sản phẩm với các chức năng:
+ * - Tìm kiếm sản phẩm theo tên
+ * - Lưới sản phẩm responsive tự điều chỉnh theo kích thước màn hình
+ * - Thông báo thành công khi thêm sản phẩm vào giỏ
+ * - Xử lý lỗi khi không thể tải dữ liệu
+ * - Phân trang hiển thị sản phẩm
+ * - Cập nhật số lượng còn lại khi thêm vào giỏ hàng
+ */
 const DashboardPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchText, setSearchText] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>('');
-  const { addToCart } = useCart();
+  const [page, setPage] = useState<number>(1);
+  const [pageSize] = useState<number>(8); // Hiển thị 8 sản phẩm mỗi trang
+  const [totalProducts, setTotalProducts] = useState<number>(0);
+  const { addToCart, cartItems } = useCart();
 
-  // Fetch products
+  /**
+   * Tải danh sách sản phẩm từ API với bộ lọc và phân trang
+   * Xử lý các trường hợp lỗi và chuẩn hóa dữ liệu 
+   */
   const loadProducts = useCallback(async () => {
     try {
-      const result = await fetchProducts(searchText);
+      const result = await fetchProducts(searchText, page, pageSize);
       setProducts(Array.isArray(result.data) ? result.data : []);
+      setTotalProducts(result.total);
       setError(null);
     } catch (err) {
-      setError('Failed to load products');
+      setError('Không thể tải danh sách sản phẩm');
       setProducts([]);
-      console.error('Error loading products:', err);
+      console.error('Lỗi khi tải sản phẩm:', err);
     }
-  }, [searchText]);
+  }, [searchText, page, pageSize]);
 
+  // Tải sản phẩm khi component được tạo và khi các dependency thay đổi
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
 
-  // Handle search
+  /**
+   * Cập nhật text tìm kiếm khi người dùng nhập
+   */
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
   };
 
+  /**
+   * Kích hoạt tìm kiếm/lọc sản phẩm và reset về trang đầu tiên
+   */
   const handleSearch = () => {
+    setPage(1); // Reset về trang đầu tiên khi tìm kiếm mới
     loadProducts();
   };
 
-  // Cart functions
+  /**
+   * Xử lý thay đổi trang phân trang
+   */
+  const handlePageChange = (event: React.ChangeEvent<unknown>, newPage: number) => {
+    setPage(newPage);
+    // loadProducts sẽ được gọi tự động qua useEffect do dependency [page] thay đổi
+  };
+
+  /**
+   * Tính toán số lượng còn lại sau khi trừ đi sản phẩm trong giỏ hàng
+   * Nhưng không thay đổi tổng số lượng tồn kho gốc
+   */
+  const getAvailableQuantity = (product: Product): number => {
+    const cartItem = cartItems.find(item => item.id === product.id && !item.isPurchased);
+    return cartItem ? Math.max(0, product.quantity - cartItem.quantity) : product.quantity;
+  };
+
+  /**
+   * Thêm sản phẩm vào giỏ hàng và hiển thị thông báo xác nhận
+   */
   const handleAddToCart = (product: Product) => {
-    addToCart(product);
+    const availableQuantity = getAvailableQuantity(product);
     
-    // Show success message
-    setSnackbarMessage(`${product.name} added to cart!`);
+    if (availableQuantity <= 0) {
+      setSnackbarMessage(`Sản phẩm ${product.name} đã hết hàng!`);
+      setSnackbarOpen(true);
+      return;
+    }
+    
+    // QUAN TRỌNG: Thêm sản phẩm với số lượng tồn kho BAN ĐẦU làm giới hạn
+    // KHÔNG sử dụng availableQuantity làm stockQuantity
+    // Điều này giúp người dùng có thể thêm đến 100% số lượng hàng, không chỉ 35%
+    const productWithStock = {
+      ...product,
+      // Đảm bảo chúng ta sử dụng số lượng gốc làm giới hạn
+      stockQuantity: product.quantity 
+    };
+    
+    addToCart(productWithStock);
+    
+    // Hiển thị thông báo thành công với tên sản phẩm
+    setSnackbarMessage(`Đã thêm ${product.name} vào giỏ hàng!`);
     setSnackbarOpen(true);
   };
+
+  // Tính toán tổng số trang
+  const totalPages = Math.ceil(totalProducts / pageSize);
 
   return (
     <Box sx={{ padding: 3 }}>
       <Typography variant="h4" gutterBottom>
-        Product Showcase
+        Danh mục sản phẩm
       </Typography>
 
-      {/* Search bar */}
+      {/* Thanh tìm kiếm với chức năng tìm kiếm ngay lập tức */}
       <Box sx={{ display: 'flex', mb: 4, maxWidth: 600 }}>
         <TextField
           fullWidth
-          placeholder="Search products..."
+          placeholder="Tìm kiếm sản phẩm..."
           value={searchText}
           onChange={handleSearchChange}
           onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -85,17 +154,30 @@ const DashboardPage: React.FC = () => {
           onClick={handleSearch} 
           sx={{ ml: 1 }}
         >
-          Search
+          Tìm kiếm
         </Button>
       </Box>
 
+      {/* Hiển thị thông báo lỗi */}
       {error && (
         <Typography color="error" sx={{ mb: 3 }}>
           {error}
         </Typography>
       )}
 
-      {/* Products grid */}
+      {/* Hiển thị tổng số kết quả tìm thấy */}
+      {!error && products.length > 0 && (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, alignItems: 'center' }}>
+          <Typography variant="subtitle1">
+            Tìm thấy {totalProducts} sản phẩm
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Trang {page}/{totalPages || 1}
+          </Typography>
+        </Box>
+      )}
+
+      {/* Lưới sản phẩm responsive - tự điều chỉnh theo kích thước màn hình */}
       <Box
         sx={{
           display: 'grid',
@@ -109,27 +191,58 @@ const DashboardPage: React.FC = () => {
         }}
       >
         {products.length > 0 ? (
-          products.map((product) => (
-            <Box key={product.id}>
-              <ProductCard
-                product={product}
-                onAddToCart={handleAddToCart}
-              />
-            </Box>
-          ))
+          products.map((product) => {
+            // Tính toán số lượng có thể thêm vào giỏ hàng
+            const availableQty = getAvailableQuantity(product);
+            
+            // Lưu ý: Không thay đổi thuộc tính quantity gốc của sản phẩm
+            // Thay vào đó, thêm availableQuantity cho hiển thị
+            const productWithAvailableInfo = {
+              ...product,
+              availableQuantity: availableQty // Thêm thông tin số lượng khả dụng
+              // KHÔNG ghi đè quantity gốc nữa
+            };
+            
+            return (
+              <Box key={product.id}>
+                <ProductCard
+                  product={productWithAvailableInfo}
+                  onAddToCart={handleAddToCart}
+                />
+              </Box>
+            );
+          })
         ) : null}
       </Box>
 
-      {/* No Products Found Message */}
+      {/* Trạng thái rỗng - Không tìm thấy sản phẩm */}
       {!error && products.length === 0 && (
         <Box sx={{ py: 5, textAlign: 'center' }}>
           <Typography variant="h6" color="text.secondary">
-            No products found. Try a different search term.
+            Không tìm thấy sản phẩm nào. Vui lòng thử từ khóa khác.
           </Typography>
         </Box>
       )}
 
-      {/* Snackbar for notifications */}
+      {/* Phần phân trang */}
+      {totalPages > 1 && (
+        <Stack spacing={2} sx={{ my: 4, display: 'flex', alignItems: 'center' }}>
+          <Pagination 
+            count={totalPages}
+            page={page}
+            onChange={handlePageChange}
+            color="primary"
+            showFirstButton
+            showLastButton
+            size="large"
+          />
+          <Typography variant="caption" color="text.secondary">
+            Hiển thị {products.length} trong tổng số {totalProducts} sản phẩm
+          </Typography>
+        </Stack>
+      )}
+
+      {/* Thông báo thành công khi thêm vào giỏ hàng */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}

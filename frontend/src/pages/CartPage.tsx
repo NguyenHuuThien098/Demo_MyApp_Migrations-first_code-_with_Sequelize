@@ -8,9 +8,6 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -20,12 +17,22 @@ import { useNavigate } from 'react-router-dom';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useTheme } from '@mui/material/styles';
 
+/**
+ * Trang Giỏ Hàng
+ * 
+ * Hiển thị danh sách sản phẩm đã thêm vào giỏ hàng và cho phép người dùng:
+ * - Điều chỉnh số lượng sản phẩm
+ * - Xóa sản phẩm khỏi giỏ
+ * - Thanh toán đơn hàng với nhiều phương thức khác nhau
+ * - Thiết kế responsive trên cả thiết bị di động và desktop
+ */
 const CartPage: React.FC = () => {
   const { cartItems, removeFromCart, updateQuantity, markAsPurchased } = useCart();
   const [openDialog, setOpenDialog] = useState<boolean>(false);
-  const [selectedPayment, setSelectedPayment] = useState<string>('online');
+  const [openSuccessDialog, setOpenSuccessDialog] = useState<boolean>(false);
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
@@ -33,21 +40,31 @@ const CartPage: React.FC = () => {
   const [showStickyTotal, setShowStickyTotal] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Filter items
+  // Lọc ra những sản phẩm chưa được mua
   const unpurchasedItems = cartItems.filter(item => !item.isPurchased);
 
-  // Calculate total
+  /**
+   * Tính tổng tiền của các sản phẩm trong giỏ hàng
+   * @returns Tổng giá trị đơn hàng
+   */
   const calculateTotal = () => {
     return unpurchasedItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
   };
 
-  // Tính tổng số lượng sản phẩm
+  /**
+   * Tính tổng số lượng sản phẩm trong giỏ hàng
+   * @returns Tổng số sản phẩm
+   */
   const calculateTotalItems = () => {
     return unpurchasedItems.reduce((sum, item) => sum + item.quantity, 0);
   };
 
-  // Handle scroll to show/hide sticky total - Giữ nguyên logic hiện tại
+  /**
+   * Hiển thị tổng tiền cố định khi người dùng cuộn trang
+   * Tích hợp hiệu ứng xuất hiện và biến mất dựa vào vị trí cuộn
+   */
   useEffect(() => {
     setShowStickyTotal(false);
     
@@ -61,7 +78,9 @@ const CartPage: React.FC = () => {
     };
   }, []);
 
-  // Dialog handlers
+  /**
+   * Quản lý hộp thoại xác nhận thanh toán
+   */
   const handleOpenDialog = () => {
     setOpenDialog(true);
   };
@@ -70,17 +89,26 @@ const CartPage: React.FC = () => {
     setOpenDialog(false);
   };
 
-  const handlePaymentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedPayment(event.target.value);
+  const handleCloseSuccessDialog = () => {
+    setOpenSuccessDialog(false);
+    navigate('/dashboard');
   };
 
-  // Place order
+  /**
+   * Xử lý quy trình đặt hàng
+   * - Tạo đối tượng đơn hàng từ dữ liệu giỏ hàng
+   * - Gọi API để lưu đơn hàng
+   * - Cập nhật trạng thái đã mua cho sản phẩm
+   * - Hiển thị thông báo thành công
+   */
   const handleBuy = async () => {
     try {
+      setIsSubmitting(true);
+      
       const orderData = {
         customerId: 1,
         shipperId: 1,
-        paymentMethod: selectedPayment,
+        paymentMethod: 'online', // Mặc định phương thức thanh toán
         orderDetails: unpurchasedItems.map((item) => ({
           productId: item.id,
           quantity: item.quantity,
@@ -90,23 +118,26 @@ const CartPage: React.FC = () => {
       await placeOrder(orderData);
       markAsPurchased(unpurchasedItems.map(item => item.id));
       handleCloseDialog();
-
-      setSnackbarMessage('Order placed successfully!');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
-    } catch (error) {
-      console.error('Error placing order:', error);
-      setSnackbarMessage('Failed to place order. Please try again.');
+      
+      // Hiển thị hộp thoại thành công thay vì snackbar
+      setOpenSuccessDialog(true);
+    } catch (error: any) {
+      console.error('Lỗi khi đặt hàng:', error);
+      // Hiển thị thông báo lỗi chi tiết
+      setSnackbarMessage(error.message || 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại sau.');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  // Chuyển hướng người dùng về trang sản phẩm
   const goToDashboard = () => navigate('/dashboard');
 
   return (
     <Box sx={{ padding: { xs: 1, sm: 2, md: 3 } }}>
-      {/* Thanh tổng quan cố định ở đầu trang */}
+      {/* Thanh header cố định - hiển thị tổng quan giỏ hàng */}
       <Box sx={{ 
         position: 'sticky',
         top: 0,
@@ -135,7 +166,7 @@ const CartPage: React.FC = () => {
               <ShoppingBasketIcon color="action" />
             </Badge>
             <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
-              Your Shopping Cart
+              Giỏ hàng của bạn
             </Typography>
           </Box>
           <Stack 
@@ -159,21 +190,22 @@ const CartPage: React.FC = () => {
               onClick={handleOpenDialog}
               sx={{ fontWeight: 'bold' }}
             >
-              Checkout
+              Thanh toán
             </Button>
           </Stack>
         </Box>
       </Box>
 
       <Box sx={{ padding: { xs: 1, sm: 2, md: 3 }, pt: 0 }}>
+        {/* Trạng thái giỏ hàng trống */}
         {unpurchasedItems.length === 0 && (
           <Paper elevation={2} sx={{ py: { xs: 6, sm: 8 }, px: { xs: 2, sm: 3 }, textAlign: 'center', borderRadius: 3 }}>
             <ShoppingCartIcon sx={{ fontSize: { xs: 60, sm: 80 }, color: 'text.secondary', mb: 2 }} />
             <Typography variant="h5" color="text.secondary" gutterBottom>
-              Your cart is empty
+              Giỏ hàng trống
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-              Looks like you haven't added any products to your cart yet.
+              Có vẻ như bạn chưa thêm sản phẩm nào vào giỏ hàng.
             </Typography>
             <Button
               variant="contained"
@@ -181,12 +213,12 @@ const CartPage: React.FC = () => {
               size="large"
               sx={{ px: 4, py: 1.5 }}
             >
-              Start Shopping
+              Mua sắm ngay
             </Button>
           </Paper>
         )}
 
-        {/* Sản phẩm chưa mua */}
+        {/* Danh sách sản phẩm trong giỏ hàng */}
         {unpurchasedItems.length > 0 && (
           <>
             <Box sx={{ 
@@ -196,14 +228,15 @@ const CartPage: React.FC = () => {
               mb: 2 
             }}>
               <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                Items in Your Cart
+                Sản phẩm trong giỏ hàng
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {unpurchasedItems.length} {unpurchasedItems.length === 1 ? 'item' : 'items'}
+                {unpurchasedItems.length} {unpurchasedItems.length === 1 ? 'sản phẩm' : 'sản phẩm'}
               </Typography>
             </Box>
 
-            <Box sx={{ pb: { xs: 12, sm: 16 } }}> {/* Add padding bottom for space when sticky footer appears */}
+            {/* Vùng cuộn danh sách sản phẩm */}
+            <Box sx={{ pb: { xs: 12, sm: 16 } }}> 
               {unpurchasedItems.map((item) => (
                 <Paper
                   key={item.id}
@@ -218,6 +251,7 @@ const CartPage: React.FC = () => {
                     }
                   }}
                 >
+                  {/* Thông tin sản phẩm */}
                   <Box sx={{ 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -225,6 +259,7 @@ const CartPage: React.FC = () => {
                     flexWrap: { xs: 'wrap', sm: 'nowrap' },
                     gap: { xs: 1, sm: 0 }
                   }}>
+                    {/* Hiển thị hình ảnh sản phẩm hoặc avatar chữ cái đầu */}
                     {item.imageUrl ? (
                       <Avatar
                         src={item.imageUrl}
@@ -252,6 +287,7 @@ const CartPage: React.FC = () => {
                       </Avatar>
                     )}
 
+                    {/* Chi tiết sản phẩm - tên, giá, mô tả */}
                     <Box sx={{ flexGrow: 1, width: { xs: '100%', sm: 'auto' } }}>
                       <Typography variant="subtitle1" sx={{ 
                         fontWeight: 'bold',
@@ -304,6 +340,7 @@ const CartPage: React.FC = () => {
 
                   <Divider />
 
+                  {/* Phần điều khiển số lượng và xóa sản phẩm */}
                   <Box sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -324,6 +361,7 @@ const CartPage: React.FC = () => {
                       <DeleteIcon fontSize={isMobile ? "small" : "medium"} />
                     </IconButton>
 
+                    {/* Điều chỉnh số lượng sản phẩm */}
                     <Box sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -366,79 +404,8 @@ const CartPage: React.FC = () => {
                 </Paper>
               ))}
             </Box>
-
-            {/* Subtotal section - đã loại bỏ CardContent */}
-            <Box 
-              id="subtotal-section"
-              sx={{
-                mt: 3,
-                mb: 4,
-                borderRadius: 2,
-                background: 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
-                color: 'white',
-                position: 'relative',
-                zIndex: 1,
-                padding: { xs: 2, sm: 3 },
-                boxShadow: 3
-              }}
-            >
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                flexDirection: { xs: 'column', sm: 'row' },
-                gap: { xs: 1, sm: 0 }
-              }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center',
-                  width: { xs: '100%', sm: 'auto' }
-                }}>
-                  <ShoppingBagIcon sx={{ mr: 1 }} />
-                  <Typography 
-                    variant="h6" 
-                    sx={{ 
-                      color: 'white',
-                      fontSize: { xs: '1rem', sm: '1.25rem' }
-                    }}
-                  >
-                    Subtotal ({calculateTotalItems()} items):
-                  </Typography>
-                </Box>
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 'bold', 
-                    color: 'white',
-                    fontSize: { xs: '1.25rem', sm: '1.5rem' }
-                  }}
-                >
-                  ${calculateTotal().toFixed(2)}
-                </Typography>
-              </Box>
-              <Button
-                variant="contained"
-                size="large"
-                fullWidth
-                onClick={handleOpenDialog}
-                sx={{
-                  mt: 2,
-                  py: { xs: 1, sm: 1.5 },
-                  fontWeight: 'bold',
-                  bgcolor: 'white',
-                  color: 'primary.main',
-                  '&:hover': {
-                    bgcolor: 'rgba(255,255,255,0.9)',
-                  },
-                  textTransform: 'uppercase',
-                  fontSize: { xs: '0.8rem', sm: '0.875rem' }
-                }}
-              >
-                PROCEED TO CHECKOUT
-              </Button>
-            </Box>
-
-            {/* Sticky subtotal ở cuối trang - giữ nguyên tính năng khi cuộn */}
+            
+            {/* Thanh tổng tiền cố định - hiển thị khi cuộn */}
             <Box
               sx={{
                 position: 'fixed',
@@ -482,7 +449,7 @@ const CartPage: React.FC = () => {
                       color: 'white',
                       fontSize: { xs: '0.8rem', sm: '1rem' }
                     }}>
-                      Subtotal ({calculateTotalItems()} items):
+                      Tổng cộng ({calculateTotalItems()} sản phẩm):
                     </Typography>
                   </Box>
                   <Typography 
@@ -516,7 +483,7 @@ const CartPage: React.FC = () => {
                     letterSpacing: '1px',
                   }}
                 >
-                  CHECKOUT
+                  THANH TOÁN
                 </Button>
               </Box>
             </Box>
@@ -524,35 +491,59 @@ const CartPage: React.FC = () => {
         )}
       </Box>
 
-      {/* Payment Method Dialog */}
+      {/* Hộp thoại xác nhận thanh toán */}
       <Dialog 
         open={openDialog} 
         onClose={handleCloseDialog}
         fullScreen={isMobile}
       >
-        <DialogTitle>Choose Payment Method</DialogTitle>
+        <DialogTitle>Xác nhận thanh toán</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Please select your preferred payment method:
+            Bạn có muốn tiếp tục thanh toán cho {calculateTotalItems()} sản phẩm với tổng giá trị ${calculateTotal().toFixed(2)} không?
           </DialogContentText>
-          <RadioGroup
-            value={selectedPayment}
-            onChange={handlePaymentChange}
-          >
-            <FormControlLabel value="online" control={<Radio />} label="Online Payment" />
-            <FormControlLabel value="cash" control={<Radio />} label="Cash on Delivery" />
-            <FormControlLabel value="credit" control={<Radio />} label="Credit Card" />
-          </RadioGroup>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleBuy} variant="contained" color="primary">
-            Confirm Order
+          <Button onClick={handleCloseDialog}>Hủy</Button>
+          <Button 
+            onClick={handleBuy} 
+            variant="contained" 
+            color="primary" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Đang xử lý...' : 'Xác nhận thanh toán'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar for notifications */}
+      {/* Hộp thoại thông báo đặt hàng thành công */}
+      <Dialog
+        open={openSuccessDialog}
+        onClose={handleCloseSuccessDialog}
+        fullScreen={isMobile}
+      >
+        <DialogTitle sx={{ textAlign: 'center', pt: 3 }}>Đặt hàng thành công</DialogTitle>
+        <DialogContent sx={{ textAlign: 'center', py: 2 }}>
+          <CheckCircleIcon color="success" sx={{ fontSize: 80, mb: 2 }} />
+          <DialogContentText>
+            Cảm ơn bạn đã đặt hàng! Đơn hàng của bạn đã được xác nhận và đang được xử lý.
+          </DialogContentText>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            Bạn có thể theo dõi trạng thái đơn hàng trong phần lịch sử đơn hàng.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+          <Button 
+            onClick={handleCloseSuccessDialog} 
+            variant="contained" 
+            color="primary"
+          >
+            Tiếp tục mua sắm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Thông báo snackbar cho lỗi */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}

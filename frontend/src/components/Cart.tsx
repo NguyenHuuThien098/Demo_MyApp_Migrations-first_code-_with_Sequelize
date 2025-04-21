@@ -22,6 +22,9 @@ import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import Badge from '@mui/material/Badge';
 import { useMediaQuery, useTheme } from '@mui/material';
 
+/**
+ * Cart component props interface
+ */
 interface CartProps {
     items: {
         id: number;
@@ -38,6 +41,14 @@ interface CartProps {
     onBuy: (paymentMethod: string) => Promise<void>;
 }
 
+/**
+ * Cart component for shopping cart display
+ * Features:
+ * - Responsive design for mobile and desktop
+ * - Product quantity adjustment controls
+ * - Sticky total display when scrolling
+ * - Payment method selection
+ */
 const Cart: React.FC<CartProps> = ({
     items,
     onRemoveItem,
@@ -51,19 +62,26 @@ const Cart: React.FC<CartProps> = ({
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+    // Filter to show only unpurchased items
     const unpurchasedItems = items.filter(item => !item.isPurchased);
 
-    // Calculate total
+    /**
+     * Calculates the total price of all items in the cart
+     */
     const calculateTotal = () => {
         return unpurchasedItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
     };
   
-    // Tính tổng số lượng sản phẩm
+    /**
+     * Calculates the total number of items in the cart
+     */
     const calculateTotalItems = () => {
         return unpurchasedItems.reduce((sum, item) => sum + item.quantity, 0);
     };
 
-    // Handle scroll to show/hide sticky total
+    /**
+     * Sets up scroll listener to show/hide sticky total based on scroll position
+     */
     useEffect(() => {
         const handleScroll = (e: any) => {
             setShowStickyTotal(e.target.scrollTop > 200);
@@ -80,6 +98,9 @@ const Cart: React.FC<CartProps> = ({
         return () => { };
     }, []);
 
+    /**
+     * Payment dialog control methods
+     */
     const handleOpenDialog = () => {
         setOpenDialog(true);
     };
@@ -92,6 +113,9 @@ const Cart: React.FC<CartProps> = ({
         setSelectedPayment(event.target.value);
     };
 
+    /**
+     * Processes the purchase with selected payment method
+     */
     const handleBuy = async () => {
         try {
             await onBuy(selectedPayment);
@@ -101,6 +125,9 @@ const Cart: React.FC<CartProps> = ({
         }
     };
 
+    /**
+     * Quantity adjustment handlers with stock validation
+     */
     const handleIncreaseQuantity = (item: any) => {
         const maxQuantity = item.stockQuantity || Number.MAX_SAFE_INTEGER;
         if (item.quantity < maxQuantity) {
@@ -118,7 +145,7 @@ const Cart: React.FC<CartProps> = ({
 
     return (
         <Box sx={{ width: '100%', position: 'relative', pb: { xs: 12, sm: 15 } }} ref={contentRef}>
-            {/* Header cố định */}
+            {/* Fixed position header */}
             <Box sx={{ 
                 position: 'sticky',
                 top: 0,
@@ -155,6 +182,7 @@ const Cart: React.FC<CartProps> = ({
                 </Box>
             </Box>
 
+            {/* Empty cart state */}
             {items.length === 0 ? (
                 <Box sx={{
                     py: { xs: 3, sm: 4 },
@@ -182,6 +210,7 @@ const Cart: React.FC<CartProps> = ({
                 </Box>
             ) : (
                 <>
+                    {/* Cart items display */}
                     {unpurchasedItems.length > 0 && (
                         <>
                             <Typography 
@@ -195,6 +224,7 @@ const Cart: React.FC<CartProps> = ({
                                 {unpurchasedItems.length} {unpurchasedItems.length === 1 ? 'item' : 'items'} in cart
                             </Typography>
 
+                            {/* Cart item cards - one for each product */}
                             {unpurchasedItems.map((item) => (
                                 <Paper
                                     key={item.id}
@@ -210,6 +240,7 @@ const Cart: React.FC<CartProps> = ({
                                         }
                                     }}
                                 >
+                                    {/* Item details section */}
                                     <Box sx={{ 
                                         display: 'flex', 
                                         alignItems: 'center', 
@@ -286,6 +317,7 @@ const Cart: React.FC<CartProps> = ({
 
                                     <Divider />
 
+                                    {/* Item action controls */}
                                     <Box sx={{
                                         display: 'flex',
                                         justifyContent: 'space-between',
@@ -293,6 +325,7 @@ const Cart: React.FC<CartProps> = ({
                                         backgroundColor: 'background.default',
                                         p: { xs: 0.5, sm: 0.75 }
                                     }}>
+                                        {/* Delete item button */}
                                         <IconButton
                                             size="small"
                                             color="error"
@@ -306,6 +339,7 @@ const Cart: React.FC<CartProps> = ({
                                             <DeleteIcon fontSize="small" />
                                         </IconButton>
 
+                                        {/* Quantity adjustment */}
                                         <Box sx={{
                                             display: 'flex',
                                             alignItems: 'center',
@@ -343,7 +377,7 @@ const Cart: React.FC<CartProps> = ({
                                 </Paper>
                             ))}
 
-                            {/* Normal subtotal section - đã loại bỏ CardContent */}
+                            {/* Cart subtotal section */}
                             <Box
                                 id="drawer-subtotal-section"
                                 sx={{
@@ -432,7 +466,7 @@ const Cart: React.FC<CartProps> = ({
                                 </Button>
                             </Box>
 
-                            {/* Sticky subtotal */}
+                            {/* Sticky fixed position total that shows when scrolling */}
                             <Box
                                 sx={{
                                     position: 'fixed',
