@@ -1,5 +1,6 @@
 import express from 'express';
 import { OrderController } from '../controller/order/orderController';
+import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
 const orderController = new OrderController();
@@ -19,7 +20,7 @@ router.get('/above-average', orderController.getOrdersAboveAverage.bind(orderCon
 router.get('/:id', orderController.getOrderById.bind(orderController));// Lấy thông tin chi tiết của order qua id
 
 // CRUD
-router.post('/', orderController.createOrder.bind(orderController));// Tạo mới 1 đơn hàng
-router.delete('/:id', orderController.deleteOrderById.bind(orderController));// Xóa order theo id
+router.post('/', protect, orderController.createOrder.bind(orderController));
+router.delete('/:id', protect, orderController.deleteOrderById.bind(orderController));
 
 export default router;

@@ -7,6 +7,7 @@ export default (sequelize: Sequelize):typeof Model => {
     public contactName!: string;
     public country!: string;
     static associate(models: any) {
+      models.Customer.belongsTo(models.User, { foreignKey: 'UserId' }); // Một Customer thuộc về một User
       models.Customer.hasMany(models.Order, { foreignKey: 'CustomerId' });
     }
   }
@@ -21,6 +22,10 @@ export default (sequelize: Sequelize):typeof Model => {
       name: DataTypes.STRING,
       contactName: DataTypes.STRING,
       country: DataTypes.STRING,
+      UserId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
     },
     {
       sequelize,

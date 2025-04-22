@@ -3,20 +3,19 @@ import path from 'path';
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 
-// Load biến môi trường từ file .env
 dotenv.config();
 
 const basename = path.basename(__filename);
 const db: any = {};
 
-// Khởi tạo Sequelize với thông tin từ .env
+// Khởi tạo Sequelize
 const sequelize = new Sequelize(
   process.env.DB_DATABASE as string,
   process.env.DB_USERNAME as string,
   process.env.DB_PASSWORD as string,
   {
     host: process.env.DB_HOST,
-    dialect: process.env.DB_DIALECT as any,
+    dialect: 'mysql', // Thay đổi nếu bạn sử dụng database khác
   }
 );
 
@@ -31,10 +30,10 @@ fs.readdirSync(__dirname)
   })
   .forEach((file) => {
     const model = require(path.join(__dirname, file)).default(sequelize);
-    db[model.name] = model;
+    db[model.name] = model; // Gắn model vào db
   });
 
-// Gọi phương thức associate nếu có
+// Gọi phương thức associate nếu model có
 Object.keys(db).forEach((modelName) => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
