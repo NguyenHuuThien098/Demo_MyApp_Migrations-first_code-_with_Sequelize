@@ -179,4 +179,77 @@ export class OrderController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    public async searchOrders(req: Request, res: Response): Promise<void> {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            let pageSize = parseInt(req.query.pageSize as string) || 10;
+
+            if (pageSize > 50) {
+                pageSize = 50;
+            }
+
+            const searchQuery = req.query.searchQuery as string || '';
+            
+            // Extract filter parameters
+            const filters: any = {};
+            
+            // Date filters
+            if (req.query.startDate) {
+                filters.startDate = req.query.startDate;
+            }
+            
+            if (req.query.endDate) {
+                filters.endDate = req.query.endDate;
+            }
+            
+            // Shipper filter
+            if (req.query.shipperId) {
+                filters.shipperId = parseInt(req.query.shipperId as string);
+            }
+            
+            // Sorting
+            if (req.query.orderBy) {
+                filters.orderBy = req.query.orderBy as string;
+            }
+            
+            if (req.query.orderDirection && ['ASC', 'DESC'].includes((req.query.orderDirection as string).toUpperCase())) {
+                filters.orderDirection = (req.query.orderDirection as string).toUpperCase();
+            }
+
+            const result = await this.orderService.searchOrders(page, pageSize, searchQuery, filters);
+            
+            res.status(200).json({ 
+                success: true, 
+                ...result 
+            });
+        } catch (error: any) {
+            res.status(500).json({ 
+                success: false, 
+                message: error.message 
+            });
+        }
+    }
+
+    public async orderProductById(req: Request, res: Response): Promise<void> {
+        try {
+          const { productId, quantity } = req.body;
+    
+          if (!productId || !quantity || quantity <= 0) {
+            res.status(400).json({ error: 'Invalid product ID or quantity' });
+            return;
+          }
+    
+          if (!req.user?.id) {
+            res.status(401).json({ error: 'User not authenticated' });
+            return;
+          }
+    
+          const order = await this.orderService.orderProductById(req.user.id, productId, quantity);
+    
+          res.status(201).json({ success: true, data: order });
+        } catch (error: any) {
+          res.status(500).json({ error: error.message });
+        }
+      }
 }

@@ -343,4 +343,87 @@ export class OrderRepository {
       raw: true,
     });
   }
+
+  public async searchOrders(limit: number, offset: number, searchQuery: string, filters: any = {}) {
+    // Build base query with joined tables
+    let whereConditions = [];
+    const replacements: any = {
+      limit,
+      offset
+    };
+
+    // Search by customer name if searchQuery is provided
+    if (searchQuery && searchQuery.trim() !== '') {
+      whereConditions.push(`(Customer.name LIKE :searchPattern OR Customer.contactName LIKE :searchPattern)`);
+      replacements.searchPattern = `%${searchQuery.trim()}%`;
+    }
+
+    // Filter by date range
+    if (filters.startDate) {
+      whereConditions.push('Order.OrderDate >= :startDate');
+      replacements.startDate = filters.startDate;
+    }
+
+    if (filters.endDate) {
+      whereConditions.push('Order.OrderDate <= :endDate');
+      replacements.endDate = filters.endDate;
+    }
+
+    // Filter by shipper
+    if (filters.shipperId) {
+      whereConditions.push('Order.ShipperId = :shipperId');
+      replacements.shipperId = filters.shipperId;
+    }
+
+    // Build the where clause
+    const whereClause = whereConditions.length > 0 
+      ? `WHERE ${whereConditions.join(' AND ')}` 
+      : '';
+
+    // Final query with sorting and pagination
+    const query = `
+      SELECT 
+        Order.id,
+        Order.OrderDate,
+        Order.CustomerId,
+        Order.ShipperId,
+        Customer.name AS CustomerName,
+        Customer.contactName AS CustomerContactName,
+        Customer.country AS CustomerCountry,
+        Shipper.Name AS ShipperName,
+        Shipper.shipper_code AS ShipperCode,
+        (SELECT SUM(od.Quantity * od.Price) 
+         FROM OrderDetails od 
+         WHERE od.OrderId = Order.id) AS TotalAmount
+      FROM Orders AS \`Order\`
+      JOIN Customers AS Customer ON Order.CustomerId = Customer.id
+      JOIN Shippers AS Shipper ON Order.ShipperId = Shipper.id
+      ${whereClause}
+      ORDER BY ${filters.orderBy || 'Order.OrderDate'} ${filters.orderDirection || 'DESC'}
+      LIMIT :limit OFFSET :offset;
+    `;
+
+    const rows = await sequelize.query(query, {
+      type: QueryTypes.SELECT,
+      replacements,
+    });
+
+    // Count total results for pagination
+    const countQuery = `
+      SELECT COUNT(*) AS total
+      FROM Orders AS \`Order\`
+      JOIN Customers AS Customer ON Order.CustomerId = Customer.id
+      JOIN Shippers AS Shipper ON Order.ShipperId = Shipper.id
+      ${whereClause}
+    `;
+
+    const countResult = await sequelize.query(countQuery, {
+      type: QueryTypes.SELECT,
+      replacements,
+    });
+
+    const total = countResult[0]?.total || 0;
+
+    return { rows, count: total };
+  }
 }

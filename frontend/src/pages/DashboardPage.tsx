@@ -48,7 +48,13 @@ const DashboardPage: React.FC = () => {
    */
   const loadProducts = useCallback(async () => {
     try {
-      const result = await fetchProducts(searchText, page, pageSize);
+      // Sử dụng API search với các parameter chuẩn từ BE
+      const result = await fetchProducts(
+        searchText, // fetchProducts đã cập nhật để dùng nameProduct
+        page, 
+        pageSize
+        // Có thể thêm các tham số tùy chọn như minPrice, maxPrice, inStock, v.v. khi cần
+      );
       setProducts(Array.isArray(result.data) ? result.data : []);
       setTotalProducts(result.total);
       setError(null);

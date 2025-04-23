@@ -1,22 +1,18 @@
 import express from 'express';
-// import { AdminCustomerController } from '../controller/customer/adminCusstomerController';
+import { CustomerController } from '../controller/customer/customerController';
+import { OrderController } from '../controller/order/orderController';
+import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
-// const customerController = new AdminCustomerController();
+const customerController = new CustomerController();
+const orderController = new OrderController();
 
-// Định nghĩa các route cho Customers
-// TĨNH
-// router.get('/', customerController.getCustomers.bind(customerController)); // Lấy tất cả khách hàng
-// router.get('/top-by-country', customerController.getTopCustomerByCountry.bind(customerController)); // Lấy thông tin khách hàng mua nhiều nhất của từng quốc gia
-// router.get('/total-spent', customerController.getCustomerTotalSpent.bind(customerController)); // Lấy tổng tiền phải trả của từng khách hàng
-// router.get('/three-months-no-orders', customerController.getCustomersWithThreeMonthsNoOrders.bind(customerController));// Lấy các khách hàng không đặt hàng trong ba tháng liên tiếp bất kỳ.
-// router.get( '/total-sale-rankings-by-year', customerController.getCustomerTotalSaleRankingsByYear.bind(customerController))
+// Công khai - không yêu cầu xác thực
+router.get('/search', customerController.searchCustomers.bind(customerController)); // API tìm kiếm khách hàng có phân trang
 
-// // ĐỘNG
-// router.get('/:id', customerController.getCustomer.bind(customerController)); // Lấy khách hàng theo ID
+router.post('/order-product', protect, orderController.orderProductById.bind(orderController));
 
-// // CRUD
-// router.post('/', customerController.createCustomer.bind(customerController)); // Tạo mới khách hàng
-// router.delete('/:id', customerController.deleteCustomerById.bind(customerController)); // Xóa khách hàng theo ID
+// Để đảm bảo mọi chức năng khác yêu cầu xác thực
+// router.use(protect);
 
 export default router;

@@ -11,9 +11,9 @@ export class ProductController {
   public async getProducts(_: Request, res: Response): Promise<void> {
     try {
       const products = await this.productService.fetchAllProducts();
-      res.json(products);
+      res.status(200).json({ success: true, data: products });
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   }
 
@@ -21,18 +21,44 @@ export class ProductController {
     try {
       const page = parseInt(req.query.page as string) || 1;
       let pageSize = parseInt(req.query.pageSize as string) || 10;
-  
+
       if (pageSize > 50) {
         pageSize = 50; // Giới hạn số lượng sản phẩm trên mỗi trang
       }
-  
+
       const searchText = req.query.nameProduct as string || '';
-  
-      const result = await this.productService.searchProducts(page, pageSize, searchText);
-  
-      res.json(result);
+      
+      // Extract filter parameters from query string
+      const filters: any = {};
+      
+      // Price filters
+      if (req.query.minPrice) {
+        filters.minPrice = parseFloat(req.query.minPrice as string);
+      }
+      
+      if (req.query.maxPrice) {
+        filters.maxPrice = parseFloat(req.query.maxPrice as string);
+      }
+      
+      // Stock filter
+      if (req.query.inStock === 'true') {
+        filters.inStock = true;
+      }
+      
+      // Sorting
+      if (req.query.orderBy) {
+        filters.orderBy = req.query.orderBy as string;
+      }
+      
+      if (req.query.orderDirection && ['ASC', 'DESC'].includes((req.query.orderDirection as string).toUpperCase())) {
+        filters.orderDirection = (req.query.orderDirection as string).toUpperCase();
+      }
+
+      const result = await this.productService.searchProducts(page, pageSize, searchText, filters);
+
+      res.status(200).json({ success: true, ...result });
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   }
 
@@ -40,19 +66,19 @@ export class ProductController {
     try {
       const productId = Number(req.params.id);
       if (isNaN(productId)) {
-        res.status(400).json({ error: 'Invalid product ID. It must be a number.' });
+        res.status(400).json({ success: false, message: 'Invalid product ID. It must be a number.' });
         return;
       }
 
       const product = await this.productService.fetchProductById(productId);
       if (!product) {
-        res.status(404).json({ error: 'Product not found' });
+        res.status(404).json({ success: false, message: 'Product not found' });
         return;
       }
 
-      res.json(product);
+      res.status(200).json({ success: true, data: product });
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   }
 

@@ -3,44 +3,59 @@
  * Tập trung quản lý URL cơ sở cho các API, giúp dễ dàng thay đổi khi triển khai ở môi trường khác
  */
 
-// Xác định URL cơ sở tự động dựa trên môi trường
-const getBaseUrl = (): string => {
-  return process.env.REACT_APP_API_URL || "http://localhost:8080";
-};
-
 /**
- * URL cơ sở cho API
+ * Base API URL 
+ * Change this value based on environment
  */
-export const BASE_API_URL = getBaseUrl();
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 /**
- * Các endpoints cụ thể cho từng loại tài nguyên
+ * API endpoint paths organized by resource
+ * Used for consistent API access throughout the application
  */
 export const API_ENDPOINTS = {
-  // Sản phẩm
-  PRODUCTS: `${BASE_API_URL}/products`,
-  
-  // Đơn hàng
-  ORDERS: `${BASE_API_URL}/orders`,
-  
-  // Khách hàng
-  CUSTOMERS: `${BASE_API_URL}/customers`,
-  
-  // Chi tiết đơn hàng
-  ORDER_DETAILS: `${BASE_API_URL}/orderdetails`,
-  
-  // Shipper
-  SHIPPERS: `${BASE_API_URL}/shippers`,
+  PRODUCTS: '/api/products',
+  ORDERS: '/api/orders',
+  CUSTOMERS: '/api/customers',
+  ORDER_DETAILS: '/api/order-details',
+  SHIPPERS: '/api/shippers',
+  AUTH: {
+    LOGIN: '/api/auth/login',
+    LOGOUT: '/api/auth/logout',
+    REGISTER: '/api/auth/register',
+    PROFILE: '/api/auth/profile',
+    REFRESH: 'api//auth/refresh',
+  },
+  CUSTOMER: {
+    ORDERS: '/api/customers/order-product',
+    PROFILE: '/api/customers/profile',
+    GETORDERS: '/api/customer/orders',
+  },
 };
 
 /**
- * Phương thức tạo URL đầy đủ cho một endpoint
- * 
- * @param endpoint - Endpoint cơ sở, ví dụ: API_ENDPOINTS.PRODUCTS
- * @param path - Đường dẫn bổ sung, ví dụ: '/search' hoặc '/1'
- * @returns URL đầy đủ
+ * Helper function to construct full API URLs
+ * @param endpoint - Base endpoint from API_ENDPOINTS
+ * @param path - Additional path segments
+ * @returns Complete API URL
  */
-export const getApiUrl = (endpoint: string, path: string = ''): string => {
-  return `${endpoint}${path}`;
+export const getApiUrl = (endpoint: string, path: string = '') => {
+  return `${API_BASE_URL}${endpoint}${path}`;
+};
+
+/**
+ * Default request headers
+ * Use this for consistent headers across requests
+ */
+export const DEFAULT_HEADERS = {
+  'Content-Type': 'application/json',
+};
+
+/**
+ * Storage keys for auth data
+ */
+export const STORAGE_KEYS = {
+  AUTH_TOKEN: 'auth_token',
+  USER: 'user_data',
 };
 

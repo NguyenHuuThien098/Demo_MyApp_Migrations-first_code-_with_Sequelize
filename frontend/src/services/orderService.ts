@@ -1,5 +1,6 @@
+import { API_ENDPOINTS, getApiUrl, API_BASE_URL } from '../utils/apiConfig';
+import axiosInstance from '../utils/axios.config';
 import axios from 'axios';
-import { API_ENDPOINTS, getApiUrl } from '../utils/apiConfig';
 
 /**
  * Cấu trúc dữ liệu cho một sản phẩm trong đơn hàng
@@ -28,20 +29,24 @@ interface OrderData {
  */
 export const placeOrder = async (orderData: OrderData) => {
   try {
-    const response = await axios.post(getApiUrl(API_ENDPOINTS.ORDERS), orderData);
+    const response = await axios.post(
+      `${API_BASE_URL}${API_ENDPOINTS.ORDERS}`, // Sử dụng API_BASE_URL và endpoint chính xác
+      orderData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true, // Nếu cần gửi cookie
+      }
+    );
     return response.data;
   } catch (error: any) {
-    // Xử lý các lỗi cụ thể từ API
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        // Lỗi từ phía server với response
-        throw new Error(error.response.data.error || 'Lỗi khi tạo đơn hàng');
-      } else if (error.request) {
-        // Yêu cầu được gửi nhưng không nhận được phản hồi
-        throw new Error('Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối của bạn.');
-      }
+    // Xử lý lỗi cụ thể từ API
+    if (error.response) {
+      throw new Error(error.response.data.error || 'Lỗi khi tạo đơn hàng');
+    } else if (error.request) {
+      throw new Error('Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối của bạn.');
     }
-    // Lỗi tổng quát
     console.error('Lỗi khi tạo đơn hàng:', error);
     throw error;
   }
@@ -54,7 +59,7 @@ export const placeOrder = async (orderData: OrderData) => {
  */
 export const getOrders = async () => {
   try {
-    const response = await axios.get(getApiUrl(API_ENDPOINTS.ORDERS));
+    const response = await axiosInstance.get(getApiUrl(API_ENDPOINTS.ORDERS));
     return response.data;
   } catch (error) {
     console.error('Lỗi khi lấy danh sách đơn hàng:', error);
@@ -70,7 +75,42 @@ export const getOrders = async () => {
  */
 export const getOrderById = async (orderId: number) => {
   try {
-    const response = await axios.get(getApiUrl(API_ENDPOINTS.ORDERS, `/${orderId}`));
+    const response = await axiosInstance.get(getApiUrl(API_ENDPOINTS.ORDERS, `/${orderId}`));
+    return response.data;
+  } catch (error) {
+    console.error('Lỗi khi lấy chi tiết đơn hàng:', error);
+    throw error;
+  }
+};
+
+/**
+ * Lấy lịch sử đơn hàng của khách hàng hiện tại
+ * 
+ * @returns Danh sách đơn hàng của khách hàng
+ */
+export const getCustomerOrderHistory = async () => {
+  try {
+    const response = await axiosInstance.get(
+      getApiUrl(API_ENDPOINTS.CUSTOMER.ORDERS)
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Lỗi khi lấy lịch sử đơn hàng:', error);
+    throw error;
+  }
+};
+
+/**
+ * Lấy chi tiết một đơn hàng cụ thể của khách hàng
+ * 
+ * @param orderId - ID của đơn hàng cần xem chi tiết
+ * @returns Chi tiết đơn hàng
+ */
+export const getCustomerOrderDetails = async (orderId: number) => {
+  try {
+    const response = await axiosInstance.get(
+      getApiUrl(API_ENDPOINTS.CUSTOMER.ORDERS, `/${orderId}`)
+    );
     return response.data;
   } catch (error) {
     console.error('Lỗi khi lấy chi tiết đơn hàng:', error);

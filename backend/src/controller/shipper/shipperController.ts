@@ -85,4 +85,46 @@ export class ShipperController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  public async searchShippers(req: Request, res: Response): Promise<void> {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      let pageSize = parseInt(req.query.pageSize as string) || 10;
+
+      if (pageSize > 50) {
+        pageSize = 50;
+      }
+
+      const searchText = req.query.searchText as string || '';
+      
+      // Extract filter parameters
+      const filters: any = {};
+      
+      // Filter by shipper_code if provided
+      if (req.query.shipperCode) {
+        filters.shipperCode = parseInt(req.query.shipperCode as string);
+      }
+      
+      // Sorting
+      if (req.query.orderBy) {
+        filters.orderBy = req.query.orderBy as string;
+      }
+      
+      if (req.query.orderDirection && ['ASC', 'DESC'].includes((req.query.orderDirection as string).toUpperCase())) {
+        filters.orderDirection = (req.query.orderDirection as string).toUpperCase();
+      }
+
+      const result = await this.shipperService.searchShippers(page, pageSize, searchText, filters);
+      
+      res.status(200).json({ 
+        success: true, 
+        ...result
+      });
+    } catch (error: any) {
+      res.status(500).json({ 
+        success: false, 
+        message: error.message 
+      });
+    }
+  }
 }

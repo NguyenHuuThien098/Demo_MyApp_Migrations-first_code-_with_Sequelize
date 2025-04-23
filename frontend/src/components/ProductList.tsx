@@ -62,13 +62,21 @@ const ProductList: React.FC<ProductListProps> = ({ onAddToCart, cartItems = [] }
         params: {
           page,
           pageSize,
-          nameProduct: searchText,
+          nameProduct: searchText,  // Match the parameter name expected by the backend API
         },
+        timeout: 10000, // Add timeout to prevent long-hanging requests
       });
       
       console.log('API Response:', response.data);
-      setProducts(response.data.data);
-      setTotal(response.data.total);
+      
+      // Check if response has the expected format
+      if (response.data && response.data.success) {
+        setProducts(response.data.data || []);
+        setTotal(response.data.total || 0);
+      } else {
+        setError('Received unexpected response format from server');
+        console.error('Unexpected response format:', response.data);
+      }
     } catch (err) {
       // Enhanced error logging
       console.error('Error details:', err);

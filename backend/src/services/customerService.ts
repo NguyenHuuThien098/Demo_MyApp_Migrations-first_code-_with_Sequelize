@@ -1,10 +1,34 @@
 import db from '../models/index';
+import { CustomerRepository } from '../repository/customerRepository';
 
 /**
  * Customer Service Class
  * Handles business logic for customer profile operations
  */
 export class CustomerService {
+  private customerRepository: CustomerRepository;
+
+  constructor() {
+    this.customerRepository = new CustomerRepository();
+  }
+
+  /**
+   * Search for customers with pagination and filters
+   */
+  async searchCustomers(page: number, pageSize: number, searchText: string, filters: any = {}) {
+    const limit = pageSize;
+    const offset = (page - 1) * pageSize;
+
+    const result = await this.customerRepository.searchCustomers(limit, offset, searchText, filters);
+
+    return {
+      data: result.rows,
+      total: result.count,
+      page,
+      pageSize
+    };
+  }
+
   /**
    * Get customer profile with user data
    * @param userId User ID associated with the customer

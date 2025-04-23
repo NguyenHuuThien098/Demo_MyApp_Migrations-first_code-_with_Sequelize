@@ -4,11 +4,11 @@ import cookieParser from 'cookie-parser';
 import productRoutes from './routes/productRoutes';
 import shipperRoutes from './routes/shipperRoutes';
 import customerRoutes from './routes/customerRoutes';
+import customerProfileRoutes from './routes/customerProfileRoutes';
 import orderRoutes from './routes/orderRoutes';
 import orderDetailRoutes from './routes/orderDetailRoutes';
 import authRoutes from './routes/authRoutes';
 import adminRoutes from './routes/adminRoutes';
-import customerProfileRoutes from './routes/customerProfileRoutes';
 import db from './config/database';
 import db_index from './models/index';
 import dotenv from 'dotenv';
@@ -43,16 +43,24 @@ db.authenticate()
 // Routes công khai - không cần xác thực
 app.use('/api/auth', authRoutes);
 
+// Routes cho search công khai - không cần xác thực
+app.use('/api/products', productRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/orders', orderRoutes); // orderRoutes có endpoint search không cần xác thực
+
+// Cho phép tìm kiếm shipper mà không cần xác thực
+const publicShipperRouter = express.Router();
+publicShipperRouter.get('/search', shipperRoutes);
+app.use('/api/shippers', publicShipperRouter);
+
 // Routes cho quản trị viên
 app.use('/api/admin', adminRoutes);
 
 // Routes dành riêng cho khách hàng đã đăng nhập
 app.use('/api/customer', customerProfileRoutes);
 
-// Routes được bảo vệ - yêu cầu xác thực
-app.use('/api/products', protect, productRoutes);
+// Routes được bảo vệ - yêu cầu xác thực (trừ endpoints search)
 app.use('/api/shippers', protect, shipperRoutes);
-app.use('/api/customers', protect, customerRoutes);
 app.use('/api/orders', protect, orderRoutes);
 app.use('/api/order-details', protect, orderDetailRoutes);
 

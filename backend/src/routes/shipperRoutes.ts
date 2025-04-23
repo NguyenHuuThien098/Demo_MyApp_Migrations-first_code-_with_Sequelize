@@ -5,6 +5,7 @@ const router = express.Router();
 const shipperController = new ShipperController();
 
 //TĨNH
+router.get('/search', shipperController.searchShippers.bind(shipperController)); // Tìm kiếm shipper với phân trang và bộ lọc
 router.get('/', shipperController.getShippers.bind(shipperController)); // Lấy tất cả shipper
 
 // ĐỘNG

@@ -1,165 +1,117 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-/**
- * Cấu trúc dữ liệu sản phẩm sử dụng trong giỏ hàng
- */
-interface Product {
+// Cart item interface
+export interface CartItem {
   id: number;
   name: string;
   unitPrice: number;
-  quantity: number; // Quantity in the cart
-  stockQuantity?: number; // Total available stock quantity in the database
-  description?: string;
-  imageUrl?: string;
+  quantity: number;
+  stockQuantity: number;
   isPurchased?: boolean;
-  originalQuantity?: number; // Total original quantity from API
+  imageUrl?: string;
+  description?: string;
 }
 
-/**
- * Các phương thức và thuộc tính được cung cấp bởi CartContext
- * Định nghĩa giao diện công khai cho các component sử dụng context này
- */
+// Cart context interface
 interface CartContextType {
-  cartItems: Product[];
-  addToCart: (product: Product) => void;
-  removeFromCart: (id: number) => void;
-  updateQuantity: (id: number, quantity: number) => void;
+  cartItems: CartItem[];
+  addToCart: (item: CartItem) => void;
+  removeFromCart: (itemId: number) => void;
+  updateCartItemQuantity: (itemId: number, quantity: number) => void;
+  updateQuantity: (itemId: number, quantity: number) => void; // Alias for updateCartItemQuantity
+  markAsPurchased: (itemIds: number[]) => void; // Add method to mark items as purchased
   clearCart: () => void;
-  markAsPurchased: (ids: number[]) => void;
-  updateProductStock: (id: number, newStockQuantity: number) => void;
-  getAvailableStock: (productId: number) => number;
+  getCartTotal: () => number;
+  getCartItemCount: () => number;
 }
 
-// Tạo Context với giá trị mặc định
+// Create context
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-/**
- * Props cho CartProvider component
- */
-interface CartProviderProps {
-  children: ReactNode;
-}
+// Local storage key for cart
+const CART_STORAGE_KEY = 'shopping_cart';
 
 /**
- * Provider component cung cấp state và các phương thức quản lý giỏ hàng
+ * Cart provider component
+ * Manages cart state and provides functions for cart operations
  */
-export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
-  // State lưu trữ sản phẩm trong giỏ hàng
-  const [cartItems, setCartItems] = useState<Product[]>([]);
+export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // Initialize state from local storage or empty array
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
 
-  /**
-   * Tính toán số lượng còn lại có thể thêm vào giỏ hàng
-   * @param productId - ID sản phẩm cần kiểm tra
-   * @returns Số lượng còn lại có thể thêm vào giỏ
-   */
-  const getAvailableStock = (productId: number): number => {
-    const item = cartItems.find(item => item.id === productId && !item.isPurchased);
-    if (!item) return Number.MAX_SAFE_INTEGER;
-    
-    const totalStock = item.stockQuantity || item.originalQuantity || item.quantity;
-    return Math.max(0, totalStock - item.quantity);
-  };
+  // Save cart to local storage when it changes
+  useEffect(() => {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+  }, [cartItems]);
 
-  /**
-   * Thêm sản phẩm vào giỏ hàng
-   * Nếu sản phẩm đã tồn tại, tăng số lượng lên 1
-   * Nếu chưa có, thêm mới với số lượng là 1
-   * Kiểm tra số lượng tồn kho trước khi thêm
-   */
-  const addToCart = (product: Product) => {
-    const existingItem = cartItems.find((item) => item.id === product.id && !item.isPurchased);
-    
-    // Lấy tổng số lượng tồn kho từ sản phẩm gốc
-    // Ưu tiên lấy từ stockQuantity (nếu đã được thiết lập), rồi đến originalQuantity,
-    // cuối cùng là quantity từ product truyền vào
-    const totalStock = product.originalQuantity || product.stockQuantity || product.quantity;
-    
-    if (existingItem) {
-      // Kiểm tra nếu đã đạt giới hạn tồn kho
-      if (existingItem.quantity >= totalStock) {
-        console.warn(`Cannot add more ${product.name}. Stock limit reached (${totalStock}).`);
-        return;
-      }
+  // Add item to cart or update quantity if already exists
+  const addToCart = (item: CartItem) => {
+    setCartItems(prevItems => {
+      // Check if item already exists in cart
+      const existingItemIndex = prevItems.findIndex(cartItem => cartItem.id === item.id);
       
-      setCartItems((prevItems) =>
-        prevItems.map((item) =>
-          item.id === product.id && !item.isPurchased
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
-      );
-    } else {
-      setCartItems((prevItems) => [
-        ...prevItems,
-        { 
-          ...product, 
-          quantity: 1,
-          originalQuantity: product.quantity, // Lưu lại số lượng gốc từ API
-          stockQuantity: totalStock // Lưu trữ tổng số lượng tồn kho
-        }
-      ]);
-    }
+      if (existingItemIndex !== -1) {
+        // Update existing item quantity
+        const updatedItems = [...prevItems];
+        const newQuantity = updatedItems[existingItemIndex].quantity + item.quantity;
+        
+        // Ensure quantity doesn't exceed stock
+        updatedItems[existingItemIndex].quantity = Math.min(newQuantity, item.stockQuantity);
+        
+        return updatedItems;
+      } else {
+        // Add new item to cart
+        return [...prevItems, item];
+      }
+    });
   };
 
-  /**
-   * Xóa sản phẩm khỏi giỏ hàng dựa vào id
-   */
-  const removeFromCart = (id: number) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  // Remove item from cart by id
+  const removeFromCart = (itemId: number) => {
+    setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
   };
 
-  /**
-   * Cập nhật số lượng của sản phẩm trong giỏ hàng
-   * Đảm bảo số lượng không vượt quá tồn kho
-   * @param id - ID của sản phẩm cần cập nhật
-   * @param quantity - Số lượng mới
-   */
-  const updateQuantity = (id: number, quantity: number) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) => {
-        if (item.id !== id) return item;
-        
-        // Kiểm tra giới hạn tồn kho từ dữ liệu gốc
-        const totalStock = item.originalQuantity || item.stockQuantity || item.quantity;
-        const safeQuantity = Math.min(quantity, totalStock);
-        
-        return { ...item, quantity: safeQuantity };
-      })
+  // Update quantity of an item in cart
+  const updateCartItemQuantity = (itemId: number, quantity: number) => {
+    setCartItems(prevItems =>
+      prevItems.map(item =>
+        item.id === itemId ? { ...item, quantity } : item
+      )
     );
   };
 
-  /**
-   * Xóa toàn bộ sản phẩm khỏi giỏ hàng
-   */
+  // Alias for updateCartItemQuantity
+  const updateQuantity = (itemId: number, quantity: number) => {
+    updateCartItemQuantity(itemId, quantity);
+  };
+
+  // Mark items as purchased
+  const markAsPurchased = (itemIds: number[]) => {
+    setCartItems(prevItems =>
+      prevItems.map(item =>
+        itemIds.includes(item.id) ? { ...item, isPurchased: true } : item
+      )
+    );
+  };
+
+  // Clear all items from cart
   const clearCart = () => {
     setCartItems([]);
   };
 
-  /**
-   * Sử dụng sau khi đặt hàng thành công để phân biệt sản phẩm đã mua và chưa mua
-   */
-  const markAsPurchased = (ids: number[]) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        ids.includes(item.id) ? { ...item, isPurchased: true } : item
-      )
-    );
+  // Calculate total price of cart
+  const getCartTotal = () => {
+    return cartItems.reduce((total, item) => total + item.quantity * item.unitPrice, 0);
   };
 
-  /**
-   * Cập nhật số lượng tồn kho của sản phẩm
-   * Sử dụng sau khi thêm sản phẩm vào giỏ hoặc khi có cập nhật từ server
-   */
-  const updateProductStock = (id: number, newStockQuantity: number) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) => 
-        item.id === id ? { 
-          ...item, 
-          stockQuantity: newStockQuantity,
-          originalQuantity: item.originalQuantity || newStockQuantity
-        } : item
-      )
-    );
+  // Count number of items in cart (not purchased)
+  const getCartItemCount = () => {
+    return cartItems
+      .filter(item => !item.isPurchased)
+      .reduce((count, item) => count + item.quantity, 0);
   };
 
   return (
@@ -168,11 +120,12 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         cartItems,
         addToCart,
         removeFromCart,
+        updateCartItemQuantity,
         updateQuantity,
-        clearCart,
         markAsPurchased,
-        updateProductStock,
-        getAvailableStock
+        clearCart,
+        getCartTotal,
+        getCartItemCount,
       }}
     >
       {children}
@@ -180,15 +133,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   );
 };
 
-/**
- * Hook tùy chỉnh để sử dụng CartContext
- * Đảm bảo context chỉ được sử dụng trong phạm vi của CartProvider
- * Ném ra lỗi nếu được sử dụng bên ngoài CartProvider
- */
+// Custom hook for accessing cart context
 export const useCart = () => {
   const context = useContext(CartContext);
   if (context === undefined) {
-    throw new Error('useCart phải được sử dụng trong CartProvider');
+    throw new Error('useCart must be used within a CartProvider');
   }
   return context;
 };

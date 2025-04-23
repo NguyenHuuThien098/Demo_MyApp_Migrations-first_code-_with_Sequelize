@@ -11,14 +11,14 @@ export class ProductService {
     return await this.productRepository.fetchAllProducts();
   }
 
-  public async searchProducts(page: number, pageSize: number, searchText: string) {
+  public async searchProducts(page: number, pageSize: number, searchText: string, filters: any = {}) {
     const limit = pageSize;
     const offset = (page - 1) * pageSize;
-  
-    const result = await this.productRepository.searchProducts(limit, offset, searchText);
-  
+
+    const result = await this.productRepository.searchProducts(limit, offset, searchText, filters);
+
     const { rows, count } = result;
-  
+
     return {
       data: rows,
       total: count,
@@ -48,7 +48,6 @@ export class ProductService {
     const endMonth = startMonth + 2;
     return await this.productRepository.fetchTopProductsByQuarter(startMonth, endMonth);
   }
-
 
   public async fetchProductsNeverOrdered() {
     return await this.productRepository.fetchProductsNeverOrdered();

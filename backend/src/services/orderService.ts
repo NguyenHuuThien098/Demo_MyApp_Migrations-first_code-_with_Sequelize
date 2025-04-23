@@ -56,6 +56,37 @@ export class OrderService {
         return order;
       }
     
+    public async orderProductById(userId: number, productId: number, quantity: number) {
+        // Kiểm tra sản phẩm tồn tại và số lượng tồn kho
+        const product = await this.orderRepository.fetchProductById(productId);
+        if (!product) {
+          throw new Error('Product not found');
+        }
+    
+        if (product.quantity < quantity) {
+          throw new Error('Insufficient stock for the product');
+        }
+    
+        // Tạo đơn hàng mới
+        const order = await this.orderRepository.createOrder({
+          CustomerId: userId, // Sử dụng userId làm CustomerId
+          OrderDate: new Date(),
+          ShipperId: null, // Có thể cập nhật sau nếu cần
+        });
+    
+        // Tạo chi tiết đơn hàng
+        await this.orderRepository.createOrderDetail({
+          OrderId: order.id,
+          ProductId: productId,
+          Quantity: quantity,
+          Price: product.UnitPrice,
+        });
+    
+        // Cập nhật tồn kho sản phẩm
+        await this.orderRepository.updateProductStock(productId, -quantity);
+    
+        return order;
+      }
 
     public async deleteOrderById(id: number) {
         return await this.orderRepository.deleteOrderById(id);
@@ -95,5 +126,19 @@ export class OrderService {
 
     public async fetchOrdersAboveAverage() {
         return await this.orderRepository.fetchOrdersAboveAverage();
+    }
+
+    public async searchOrders(page: number, pageSize: number, searchQuery: string, filters: any = {}) {
+        const limit = pageSize;
+        const offset = (page - 1) * pageSize;
+
+        const result = await this.orderRepository.searchOrders(limit, offset, searchQuery, filters);
+
+        return {
+            data: result.rows,
+            total: result.count,
+            page,
+            pageSize,
+        };
     }
 }
