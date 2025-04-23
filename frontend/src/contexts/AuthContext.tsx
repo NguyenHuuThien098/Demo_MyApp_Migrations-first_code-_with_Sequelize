@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService } from '../services/authService';
 import { STORAGE_KEYS } from '../utils/apiConfig';
-import { AuthState, LoginCredentials, RegisterCredentials,  } from '../types/auth.types';
+import { AuthState, LoginCredentials, RegisterCredentials, User } from '../types/auth.types';
 
 // Default authentication state
 const defaultAuthState: AuthState = {
@@ -36,12 +36,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const loadUser = async () => {
       if (state.token) {
         try {
+          // Thử refresh token trước khi tải thông tin người dùng
+          try {
+            const refreshResponse = await authService.refreshToken();
+            if (refreshResponse.success && refreshResponse.data?.token) {
+              const newToken = refreshResponse.data.token;
+              authService.setToken(newToken);
+              setState(prev => ({
+                ...prev,
+                token: newToken, // Đảm bảo đây là string, không phải undefined
+              }));
+              console.log("Token refreshed successfully");
+            }
+          } catch (refreshError) {
+            console.warn("Error refreshing token:", refreshError);
+            // Tiếp tục với token hiện tại nếu không thể làm mới
+          }
+
+          // Sau đó tải thông tin người dùng
           const response = await authService.getProfile();
           if (response.success && response.data?.user) {
+            const userData = response.data.user as User; // Type assertion để đảm bảo không phải undefined
             setState(prev => ({
               ...prev,
-              user: response.data?.user || null, // Sử dụng toán tử ?. để tránh lỗi
-              isAuthenticated: !!response.data?.user, // Xác định nếu user tồn tại
+              user: userData,
+              isAuthenticated: true,
               isLoading: false
             }));
           } else {
@@ -75,8 +94,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     };
 
-    if (state.isLoading) {
+    if (state.token) {
       loadUser();
+    } else {
+      setState(prev => ({ ...prev, isLoading: false }));
     }
   }, [state.token, state.isLoading]);
 
@@ -155,11 +176,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setState(prev => ({ ...prev, isLoading: true }));
     try {
       await authService.logout();
+      console.log('Đăng xuất thành công');
     } catch (error: any) {
-      console.error('Logout API error:', error);
-      // Continue with local logout even if server-side logout fails
+      console.error('Lỗi khi đăng xuất:', error);
+      // Tiếp tục với local logout ngay cả khi server-side logout thất bại
     } finally {
+      // Đảm bảo xóa token và thông tin người dùng
       authService.removeToken();
+      localStorage.removeItem(STORAGE_KEYS.USER);
+      
+      // Đặt lại trạng thái
       setState({
         ...defaultAuthState,
         isLoading: false

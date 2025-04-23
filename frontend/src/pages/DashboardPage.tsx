@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Typography, TextField, InputAdornment, Button, Snackbar, Alert, Pagination, Stack } from '@mui/material';
+import { Typography, TextField, InputAdornment, Button, Snackbar, Alert, Pagination, Stack, Badge, IconButton } from '@mui/material';
 import Box from '@mui/material/Box';
 import SearchIcon from '@mui/icons-material/Search';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ProductCard from '../components/ProductCard';
 import { fetchProducts } from '../services/productService';
 import { useCart } from '../contexts/CartContext';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * Cấu trúc dữ liệu sản phẩm 
@@ -41,6 +43,7 @@ const DashboardPage: React.FC = () => {
   const [pageSize] = useState<number>(8); // Hiển thị 8 sản phẩm mỗi trang
   const [totalProducts, setTotalProducts] = useState<number>(0);
   const { addToCart, cartItems } = useCart();
+  const navigate = useNavigate();
 
   /**
    * Tải danh sách sản phẩm từ API với bộ lọc và phân trang
@@ -135,9 +138,29 @@ const DashboardPage: React.FC = () => {
 
   return (
     <Box sx={{ padding: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Danh mục sản phẩm
-      </Typography>
+      {/* Header with Cart Icon */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h4">
+          Danh mục sản phẩm
+        </Typography>
+        <IconButton 
+          color="primary" 
+          onClick={() => navigate('/cart')} 
+          size="large"
+          sx={{ 
+            bgcolor: 'rgba(25, 118, 210, 0.08)', 
+            '&:hover': { bgcolor: 'rgba(25, 118, 210, 0.15)' }
+          }}
+        >
+          <Badge 
+            badgeContent={cartItems.filter(item => !item.isPurchased).length} 
+            color="secondary"
+            sx={{ '& .MuiBadge-badge': { fontSize: '0.8rem', height: '20px', minWidth: '20px' } }}
+          >
+            <ShoppingCartIcon fontSize="medium" />
+          </Badge>
+        </IconButton>
+      </Box>
 
       {/* Thanh tìm kiếm với chức năng tìm kiếm ngay lập tức */}
       <Box sx={{ display: 'flex', mb: 4, maxWidth: 600 }}>

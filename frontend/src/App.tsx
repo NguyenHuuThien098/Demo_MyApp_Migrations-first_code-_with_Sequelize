@@ -11,8 +11,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/admin/Dashboard';
-import CartPage from './pages/CartPage';
+import UserDashboard from './pages/UserDashboard';
 import NotFound from './pages/NotFound';
 import Unauthorized from './pages/Unauthorized';
 import AdminDashboard from './pages/admin/Dashboard';
@@ -85,8 +84,8 @@ const App: React.FC = () => {
               
               {/* Protected routes */}
               <Route element={<PrivateRoute />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/cart" element={<CartPage />} />
+                <Route path="/dashboard" element={<UserDashboard />} />
+                {/* Removed separate cart route since it's now in dashboard */}
               </Route>
               
               {/* Admin routes - restricted by role */}
@@ -96,6 +95,9 @@ const App: React.FC = () => {
                 <Route path="/admin" element={<AdminDashboard />} />
                 {/* Other admin routes can be added here */}
               </Route>
+              
+              {/* Redirect old cart page to dashboard */}
+              <Route path="/cart" element={<Navigate to="/dashboard" replace />} />
               
               {/* Catch-all route to 404 */}
               <Route path="*" element={<Navigate to="/not-found" replace />} />

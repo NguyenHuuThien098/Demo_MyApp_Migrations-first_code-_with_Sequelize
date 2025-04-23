@@ -52,6 +52,8 @@ class AuthService {
     try {
       const token = this.getToken();
       
+      console.log('Gọi API đăng xuất:', `${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`);
+      
       const response = await axios.post<AuthResponse>(
         `${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`,
         {}, // Empty body
@@ -63,9 +65,24 @@ class AuthService {
         }
       );
       
+      console.log('Đăng xuất thành công từ server');
+      
+      // Xóa token và thông tin người dùng
       this.removeToken();
+      localStorage.removeItem(STORAGE_KEYS.USER);
+      
+      // Xóa các cookie liên quan đến xác thực
+      document.cookie.split(';').forEach(cookie => {
+        const [name] = cookie.trim().split('=');
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+      });
+      
       return response.data;
     } catch (error: any) {
+      console.error('Đăng xuất thất bại:', error.response || error);
+      // Vẫn xóa token và thông tin người dùng ngay cả khi API thất bại
+      this.removeToken();
+      localStorage.removeItem(STORAGE_KEYS.USER);
       throw new Error(error.response?.data?.message || 'Đăng xuất thất bại');
     }
   }
@@ -97,16 +114,27 @@ class AuthService {
    */
   async refreshToken(): Promise<AuthResponse> {
     try {
+      console.log('Đang gọi API refresh token...');
       const response = await axios.post<AuthResponse>(
         `${API_BASE_URL}${API_ENDPOINTS.AUTH.REFRESH}`,
-        {},
-        { withCredentials: true }
+        {}, // Empty body
+        { 
+          withCredentials: true, // Quan trọng: Đảm bảo cookie refreshToken được gửi
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
+      
+      console.log('Phản hồi API refresh token:', response.data);
+      
       if (response.data.success && response.data.data?.token) {
         this.setToken(response.data.data.token);
+        console.log('Đã lưu token mới vào localStorage');
       }
       return response.data;
     } catch (error: any) {
+      console.error('Lỗi khi làm mới token:', error.response || error);
       throw new Error(error.response?.data?.message || 'Làm mới token thất bại');
     }
   }

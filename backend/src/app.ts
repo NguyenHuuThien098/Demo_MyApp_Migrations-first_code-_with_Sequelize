@@ -46,7 +46,7 @@ app.use('/api/auth', authRoutes);
 // Routes cho search công khai - không cần xác thực
 app.use('/api/products', productRoutes);
 app.use('/api/customers', customerRoutes);
-app.use('/api/orders', orderRoutes); // orderRoutes có endpoint search không cần xác thực
+// app.use('/api/orders', orderRoutes); // orderRoutes có endpoint search không cần xác thực
 
 // Cho phép tìm kiếm shipper mà không cần xác thực
 const publicShipperRouter = express.Router();
@@ -57,7 +57,7 @@ app.use('/api/shippers', publicShipperRouter);
 app.use('/api/admin', adminRoutes);
 
 // Routes dành riêng cho khách hàng đã đăng nhập
-app.use('/api/customer', customerProfileRoutes);
+app.use('/api/customer',protect, customerProfileRoutes);
 
 // Routes được bảo vệ - yêu cầu xác thực (trừ endpoints search)
 app.use('/api/shippers', protect, shipperRoutes);

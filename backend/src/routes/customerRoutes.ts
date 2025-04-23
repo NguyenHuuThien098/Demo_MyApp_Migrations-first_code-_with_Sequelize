@@ -10,9 +10,7 @@ const orderController = new OrderController();
 // Công khai - không yêu cầu xác thực
 router.get('/search', customerController.searchCustomers.bind(customerController)); // API tìm kiếm khách hàng có phân trang
 
-router.post('/order-product', protect, orderController.orderProductById.bind(orderController));
-
-// Để đảm bảo mọi chức năng khác yêu cầu xác thực
+router.get('/:customerId/orders', protect, orderController.getOrdersByCustomerId.bind(orderController));// Để đảm bảo mọi chức năng khác yêu cầu xác thực
 // router.use(protect);
 
 export default router;

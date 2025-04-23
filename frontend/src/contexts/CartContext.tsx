@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useAuth } from './AuthContext'; // Import useAuth để lấy thông tin người dùng
+import { placeOrder } from '../services/orderService'; // Import hàm đặt hàng từ orderService
 
 // Cart item interface
 export interface CartItem {
@@ -23,6 +25,7 @@ interface CartContextType {
   clearCart: () => void;
   getCartTotal: () => number;
   getCartItemCount: () => number;
+  checkout: () => Promise<void>; // Thêm hàm checkout
 }
 
 // Create context
@@ -36,7 +39,7 @@ const CART_STORAGE_KEY = 'shopping_cart';
  * Manages cart state and provides functions for cart operations
  */
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Initialize state from local storage or empty array
+  const { user } = useAuth(); // Lấy thông tin người dùng từ AuthContext
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
     const savedCart = localStorage.getItem(CART_STORAGE_KEY);
     return savedCart ? JSON.parse(savedCart) : [];
@@ -50,20 +53,14 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Add item to cart or update quantity if already exists
   const addToCart = (item: CartItem) => {
     setCartItems(prevItems => {
-      // Check if item already exists in cart
       const existingItemIndex = prevItems.findIndex(cartItem => cartItem.id === item.id);
-      
+
       if (existingItemIndex !== -1) {
-        // Update existing item quantity
         const updatedItems = [...prevItems];
         const newQuantity = updatedItems[existingItemIndex].quantity + item.quantity;
-        
-        // Ensure quantity doesn't exceed stock
         updatedItems[existingItemIndex].quantity = Math.min(newQuantity, item.stockQuantity);
-        
         return updatedItems;
       } else {
-        // Add new item to cart
         return [...prevItems, item];
       }
     });
@@ -114,6 +111,31 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .reduce((count, item) => count + item.quantity, 0);
   };
 
+  // Checkout function
+  const checkout = async () => {
+    try {
+      if (!user) {
+        throw new Error('Bạn cần đăng nhập để đặt hàng.');
+      }
+
+      const orderData = {
+        customerId: user.id, // Lấy ID người dùng từ AuthContext
+        shipperId: 1, // Ví dụ: ID đơn vị vận chuyển mặc định
+        paymentMethod: 'COD', // Phương thức thanh toán
+        orderDetails: cartItems.map(item => ({
+          productId: item.id,
+          quantity: item.quantity,
+        })),
+      };
+
+      const response = await placeOrder(orderData);
+      console.log('Đặt hàng thành công:', response);
+      clearCart(); // Xóa giỏ hàng sau khi đặt hàng thành công
+    } catch (error: any) {
+      console.error('Lỗi khi đặt hàng:', error);
+    }
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -126,6 +148,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         clearCart,
         getCartTotal,
         getCartItemCount,
+        checkout, // Thêm checkout vào context
       }}
     >
       {children}

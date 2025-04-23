@@ -14,7 +14,11 @@ export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8
  * Used for consistent API access throughout the application
  */
 export const API_ENDPOINTS = {
-  PRODUCTS: '/api/products',
+  PRODUCTS: {
+    ROOT: '/api/products',
+    SEARCH: '/api/products/search',
+    DETAILS: '/api/products/:id',
+  },
   ORDERS: '/api/orders',
   CUSTOMERS: '/api/customers',
   ORDER_DETAILS: '/api/order-details',
@@ -24,12 +28,12 @@ export const API_ENDPOINTS = {
     LOGOUT: '/api/auth/logout',
     REGISTER: '/api/auth/register',
     PROFILE: '/api/auth/profile',
-    REFRESH: 'api//auth/refresh',
+    REFRESH: '/api/auth/refresh', // Sửa lại endpoint refresh token
   },
   CUSTOMER: {
-    ORDERS: '/api/customers/order-product',
-    PROFILE: '/api/customers/profile',
-    GETORDERS: '/api/customer/orders',
+    ORDERS: '/api/customer/order-product',
+    PROFILE: '/api/customer/profile',
+    GETORDERS: '/api/customers/:customerId/orders', // Sửa lại endpoint lấy orders
   },
 };
 

@@ -55,7 +55,7 @@ const ProductList: React.FC<ProductListProps> = ({ onAddToCart, cartItems = [] }
     
     try {
       // Log the API URL being used
-      const apiUrl = getApiUrl(API_ENDPOINTS.PRODUCTS, '/search');
+      const apiUrl = getApiUrl(API_ENDPOINTS.PRODUCTS.SEARCH);
       console.log(`Fetching products from: ${apiUrl}`);
       
       const response = await axios.get(apiUrl, {

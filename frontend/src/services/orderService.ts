@@ -1,4 +1,4 @@
-import { API_ENDPOINTS, getApiUrl, API_BASE_URL } from '../utils/apiConfig';
+import { API_ENDPOINTS, API_BASE_URL, STORAGE_KEYS,getApiUrl } from '../utils/apiConfig';
 import axiosInstance from '../utils/axios.config';
 import axios from 'axios';
 
@@ -29,26 +29,32 @@ interface OrderData {
  */
 export const placeOrder = async (orderData: OrderData) => {
   try {
-    const response = await axios.post(
-      `${API_BASE_URL}${API_ENDPOINTS.ORDERS}`, // Sử dụng API_BASE_URL và endpoint chính xác
-      orderData,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        withCredentials: true, // Nếu cần gửi cookie
-      }
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+    if (!token) {
+      throw new Error('Bạn cần đăng nhập để đặt hàng.');
+    }
+
+    console.log('Placing order with data:', orderData);
+    
+    // Sử dụng axiosInstance thay vì axios trực tiếp
+    const response = await axiosInstance.post(
+      `${API_BASE_URL}${API_ENDPOINTS.ORDERS}`,
+      orderData
     );
+
+    console.log('Order response:', response.data);
     return response.data;
   } catch (error: any) {
-    // Xử lý lỗi cụ thể từ API
-    if (error.response) {
-      throw new Error(error.response.data.error || 'Lỗi khi tạo đơn hàng');
-    } else if (error.request) {
-      throw new Error('Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối của bạn.');
+    console.error('Error placing order:', error.response || error);
+    
+    // Hiển thị chi tiết lỗi từ backend
+    if (error.response?.data?.error) {
+      throw new Error(error.response.data.error);
+    } else if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    } else {
+      throw new Error('Không thể đặt hàng. Vui lòng thử lại sau.');
     }
-    console.error('Lỗi khi tạo đơn hàng:', error);
-    throw error;
   }
 };
 

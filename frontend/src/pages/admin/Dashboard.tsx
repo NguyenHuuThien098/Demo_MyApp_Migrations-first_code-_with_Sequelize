@@ -54,10 +54,18 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        if (!token) return;
+        if (!token || !user?.id) {
+          setLoading(false);
+          return;
+        }
+        
+        console.log("Fetching orders with token:", token?.substring(0, 15) + "...");
+        
+        // Replace the customerId parameter in the endpoint
+        const ordersEndpoint = API_ENDPOINTS.CUSTOMER.GETORDERS.replace(':customerId', user.id.toString());
         
         const response = await axios.get(
-          `${API_BASE_URL}${API_ENDPOINTS.CUSTOMER.GETORDERS}`,
+          `${API_BASE_URL}${ordersEndpoint}`,
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -65,7 +73,8 @@ const Dashboard: React.FC = () => {
           }
         );
         
-        setOrders(response.data.data || []);
+        console.log("Orders response:", response.data);
+        setOrders(Array.isArray(response.data.data) ? response.data.data : []);
       } catch (err: any) {
         console.error('Error fetching orders:', err);
         setError('Failed to load your orders. Please try again later.');
@@ -75,7 +84,7 @@ const Dashboard: React.FC = () => {
     };
     
     fetchOrders();
-  }, [token]);
+  }, [token, user?.id]);
 
   // Format date for display
   const formatDate = (dateString: string) => {

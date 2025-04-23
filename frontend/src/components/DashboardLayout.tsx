@@ -128,7 +128,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <IconButton 
             color="inherit" 
             onClick={() => navigate('/cart')}
-            sx={{ display: { xs: 'block', sm: 'none' } }}
           >
             <Badge badgeContent={cartItemCount} color="error">
               <ShoppingCartIcon />

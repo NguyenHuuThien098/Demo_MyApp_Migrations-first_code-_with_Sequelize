@@ -25,9 +25,9 @@ export const fetchProducts = async (
   orderDirection?: 'ASC' | 'DESC'
 ) => {
   try {
-    console.log(`API call to: ${getApiUrl(API_ENDPOINTS.PRODUCTS, '/search')}`);
+    console.log(`API call to: ${getApiUrl(API_ENDPOINTS.PRODUCTS.SEARCH)}`);
     
-    const response = await axios.get(getApiUrl(API_ENDPOINTS.PRODUCTS, '/search'), {
+    const response = await axios.get(getApiUrl(API_ENDPOINTS.PRODUCTS.SEARCH), {
       params: {
         nameProduct: searchText,  // Using the parameter name expected by the backend
         page,
@@ -75,7 +75,7 @@ export const fetchProducts = async (
  */
 export const fetchProductById = async (productId: number) => {
   try {
-    const response = await axios.get(getApiUrl(API_ENDPOINTS.PRODUCTS, `/${productId}`));
+    const response = await axios.get(getApiUrl(API_ENDPOINTS.PRODUCTS.SEARCH, `/${productId}`));
     return response.data;
   } catch (error) {
     console.error('Lỗi khi lấy chi tiết sản phẩm:', error);
