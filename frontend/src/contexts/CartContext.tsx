@@ -51,17 +51,31 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [cartItems]);
 
   // Add item to cart or update quantity if already exists
-  const addToCart = (item: CartItem) => {
+  const addToCart = (product:any) => {
     setCartItems(prevItems => {
-      const existingItemIndex = prevItems.findIndex(cartItem => cartItem.id === item.id);
-
-      if (existingItemIndex !== -1) {
-        const updatedItems = [...prevItems];
-        const newQuantity = updatedItems[existingItemIndex].quantity + item.quantity;
-        updatedItems[existingItemIndex].quantity = Math.min(newQuantity, item.stockQuantity);
-        return updatedItems;
+      // Kiểm tra sản phẩm đã có trong giỏ hàng chưa
+      const existingItem = prevItems.find(item => item.id === product.id && !item.isPurchased);
+      
+      // Tính toán số lượng hiện có trong giỏ
+      const currentCartQuantity = existingItem ? existingItem.quantity : 0;
+      
+      // Kiểm tra nếu sản phẩm vượt quá số lượng tồn kho
+      if (currentCartQuantity + 1 > product.stockQuantity) {
+        // Hiển thị thông báo (có thể thông qua context khác hoặc callback)
+        alert(`Không thể thêm sản phẩm. Chỉ còn ${product.stockQuantity} sản phẩm trong kho.`);
+        return prevItems;
+      }
+      
+      if (existingItem) {
+        // Nếu sản phẩm đã có trong giỏ, tăng số lượng
+        return prevItems.map(item =>
+          item.id === product.id && !item.isPurchased
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
       } else {
-        return [...prevItems, item];
+        // Nếu chưa có, thêm vào giỏ với số lượng ban đầu là 1
+        return [...prevItems, { ...product, quantity: 1, isPurchased: false }];
       }
     });
   };

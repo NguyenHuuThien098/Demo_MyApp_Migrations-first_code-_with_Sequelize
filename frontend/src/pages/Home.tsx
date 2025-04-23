@@ -88,6 +88,12 @@ const Home: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  const getAvailableQuantity = (product: Product): number => {
+    const inCart = cartItems.find(item => item.id === product.id && !item.isPurchased);
+    const cartQuantity = inCart ? inCart.quantity : 0;
+    return Math.max(0, product.quantity - cartQuantity);
+  };
+
   // Format product data for cart
   const formatProductForCart = (product: Product) => {
     return {
@@ -210,6 +216,8 @@ const Home: React.FC = () => {
     setShowFilters(!showFilters);
   };
 
+  
+
   return (
     <div className="home-page">
       {/* Hero section */}
@@ -291,10 +299,10 @@ const Home: React.FC = () => {
 
           <Box className="hero-content">
             <Typography variant="h3" component="h1" className="hero-title">
-              Khám phá sản phẩm chất lượng
+              SHOP APP
             </Typography>
             <Typography variant="h6" className="hero-subtitle">
-              Tìm kiếm và đặt hàng các sản phẩm tốt nhất
+              Tìm kiếm và đặt hàng các sản phẩm
             </Typography>
 
             {/* Search form */}
@@ -453,68 +461,59 @@ const Home: React.FC = () => {
                 gap: 3,
                 justifyContent: 'flex-start'
               }}>
-                {products.map((product) => (
-                  <Box
-                    key={product.id}
-                    sx={{
-                      width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(33.333% - 16px)', lg: 'calc(25% - 18px)' },
-                      display: 'flex',
-                      mb: 2
-                    }}
-                  >
-                    <Card className="product-card" sx={{ height: '100%', display: 'flex', flexDirection: 'column', width: '100%' }}>
-                      {/* Product image */}
-                      {product.imageUrl ? (
-                        <CardMedia
-                          component="img"
-                          height="180"
-                          image={product.imageUrl}
-                          alt={product.Name}
-                          className="product-image"
-                        />
-                      ) : (
-                        <Box className="product-image-placeholder" sx={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Typography variant="body1">
-                            No Image
-                          </Typography>
-                        </Box>
-                      )}
+                {products.map((product) => {
+                  // Tính số lượng còn lại
+                  const availableQuantity = getAvailableQuantity(product);
 
-                      {/* Product details */}
-                      <CardContent sx={{ flexGrow: 1 }}>
-                        <Typography gutterBottom variant="h6" component="div" className="product-title">
-                          {product.Name}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" className="product-description">
-                          {product.description || 'No description available'}
-                        </Typography>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                          <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
-                            ${product.UnitPrice}
-                          </Typography>
-                          <Typography variant="body2" color={product.quantity > 0 ? 'success.main' : 'error.main'}>
-                            {product.quantity > 0 ? `In stock: ${product.quantity}` : 'Out of stock'}
-                          </Typography>
-                        </Box>
-                      </CardContent>
+                  return (
+                    <Box
+                      key={product.id}
+                      sx={{
+                        width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(33.333% - 16px)', lg: 'calc(25% - 18px)' },
+                        display: 'flex',
+                        mb: 2
+                      }}
+                    >
+                      <Card className="product-card" sx={{ height: '100%', display: 'flex', flexDirection: 'column', width: '100%' }}>
+                        {/* Product image */}
+                        {/* ... */}
 
-                      {/* Actions */}
-                      <CardActions>
-                        <Button
-                          variant="contained"
-                          startIcon={<AddShoppingCartIcon />}
-                          fullWidth
-                          onClick={() => handleAddToCart(product)}
-                          disabled={product.quantity <= 0}
-                          color={isAuthenticated ? "primary" : "secondary"}
-                        >
-                          {product.quantity <= 0 ? 'Hết hàng' :
-                            isAuthenticated ? 'Thêm vào giỏ hàng' : 'Đăng nhập để mua hàng'}
-                        </Button>
-                      </CardActions>
-                    </Card>
-                  </Box>
-                ))}
+                        {/* Product details */}
+                        <CardContent sx={{ flexGrow: 1 }}>
+                          <Typography gutterBottom variant="h6" component="div" className="product-title">
+                            {product.Name}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" className="product-description">
+                            {product.description || 'No description available'}
+                          </Typography>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                            <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
+                              ${product.UnitPrice}
+                            </Typography>
+                            <Typography variant="body2" color={availableQuantity > 0 ? 'success.main' : 'error.main'}>
+                              {availableQuantity > 0 ? `In stock: ${availableQuantity}` : 'Out of stock'}
+                            </Typography>
+                          </Box>
+                        </CardContent>
+
+                        {/* Actions */}
+                        <CardActions>
+                          <Button
+                            variant="contained"
+                            startIcon={<AddShoppingCartIcon />}
+                            fullWidth
+                            onClick={() => handleAddToCart(product)}
+                            disabled={availableQuantity <= 0}
+                            color={isAuthenticated ? "primary" : "secondary"}
+                          >
+                            {availableQuantity <= 0 ? 'Hết hàng' :
+                              isAuthenticated ? 'Thêm vào giỏ hàng' : 'Đăng nhập để mua hàng'}
+                          </Button>
+                        </CardActions>
+                      </Card>
+                    </Box>
+                  );
+                })}
               </Box>
             ) : (
               // No products found

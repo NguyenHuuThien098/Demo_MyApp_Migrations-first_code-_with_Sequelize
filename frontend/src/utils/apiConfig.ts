@@ -28,12 +28,12 @@ export const API_ENDPOINTS = {
     LOGOUT: '/api/auth/logout',
     REGISTER: '/api/auth/register',
     PROFILE: '/api/auth/profile',
-    REFRESH: '/api/auth/refresh', // Sửa lại endpoint refresh token
+    REFRESH: '/api/auth/refresh', // refresh token
   },
   CUSTOMER: {
     ORDERS: '/api/customer/order-product',
     PROFILE: '/api/customer/profile',
-    GETORDERS: '/api/customers/:customerId/orders', // Sửa lại endpoint lấy orders
+    GETORDERS: '/api/customers/:customerId/orders', // lấy orders theo idcustomer
   },
 };
 
