@@ -1,4 +1,4 @@
-import {API_BASE_URL, API_ENDPOINTS, STORAGE_KEYS } from '../utils/apiConfig';
+import {API_BASE_URL, API_ENDPOINTS } from '../utils/apiConfig';
 import { 
   AuthResponse, 
   LoginCredentials, 
@@ -18,10 +18,12 @@ class AuthService {
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
     try {
       const response = await axios.post<AuthResponse>(
-        `${API_BASE_URL}${API_ENDPOINTS.AUTH.REFRESH}`,
+        `${API_BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`,
         credentials,
         { withCredentials: true } // Important for cookies
       );
+      
+      // No longer storing token in localStorage
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Đăng ký thất bại');
@@ -35,10 +37,12 @@ class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
       const response = await axios.post<AuthResponse>(
-        `${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN}`, // Ghép thủ công API_BASE_URL với endpoint
+        `${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN}`,
         credentials,
-        { withCredentials: true } // Quan trọng để gửi cookie
+        { withCredentials: true } // Important for cookies
       );      
+      
+      // No longer storing token in localStorage
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Đăng nhập thất bại');
@@ -47,59 +51,46 @@ class AuthService {
 
   /**
    * Logout the current user
+   * @param token Access token from memory state
    */
-  async logout(): Promise<AuthResponse> {
+  async logout(token: string | null): Promise<AuthResponse> {
     try {
-      const token = this.getToken();
-      
       console.log('Gọi API đăng xuất:', `${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`);
       
       const response = await axios.post<AuthResponse>(
         `${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`,
         {}, // Empty body
         {
-          headers: {
+          headers: token ? {
             Authorization: `Bearer ${token}`
-          },
-          withCredentials: true
+          } : {},
+          withCredentials: true // Important for sending refresh token cookie
         }
       );
       
       console.log('Đăng xuất thành công từ server');
       
-      // Xóa token và thông tin người dùng
-      this.removeToken();
-      localStorage.removeItem(STORAGE_KEYS.USER);
-      
-      // Xóa các cookie liên quan đến xác thực
-      document.cookie.split(';').forEach(cookie => {
-        const [name] = cookie.trim().split('=');
-        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
-      });
-      
+      // No need to remove from localStorage, token is now in memory
       return response.data;
     } catch (error: any) {
       console.error('Đăng xuất thất bại:', error.response || error);
-      // Vẫn xóa token và thông tin người dùng ngay cả khi API thất bại
-      this.removeToken();
-      localStorage.removeItem(STORAGE_KEYS.USER);
       throw new Error(error.response?.data?.message || 'Đăng xuất thất bại');
     }
   }
 
   /**
    * Get current user profile
+   * @param token Access token from memory state
    */
-  async getProfile(): Promise<ProfileResponse> {
+  async getProfile(token?: string | null): Promise<ProfileResponse> {
     try {
-      const token = this.getToken();
-      
       const response = await axios.get<ProfileResponse>(
         `${API_BASE_URL}${API_ENDPOINTS.AUTH.PROFILE}`,
         {
-          headers: {
+          headers: token ? {
             Authorization: `Bearer ${token}`
-          }
+          } : {},
+          withCredentials: true // Send cookies for possible refresh
         }
       );
       
@@ -110,7 +101,7 @@ class AuthService {
   }
 
   /**
-   * Refresh the access token using refresh token
+   * Refresh the access token using refresh token cookie
    */
   async refreshToken(): Promise<AuthResponse> {
     try {
@@ -119,7 +110,7 @@ class AuthService {
         `${API_BASE_URL}${API_ENDPOINTS.AUTH.REFRESH}`,
         {}, // Empty body
         { 
-          withCredentials: true, // Quan trọng: Đảm bảo cookie refreshToken được gửi
+          withCredentials: true, // Important: Ensure refreshToken cookie is sent
           headers: {
             'Content-Type': 'application/json'
           }
@@ -128,43 +119,12 @@ class AuthService {
       
       console.log('Phản hồi API refresh token:', response.data);
       
-      if (response.data.success && response.data.data?.token) {
-        this.setToken(response.data.data.token);
-        console.log('Đã lưu token mới vào localStorage');
-      }
+      // No longer storing token in localStorage
       return response.data;
     } catch (error: any) {
       console.error('Lỗi khi làm mới token:', error.response || error);
       throw new Error(error.response?.data?.message || 'Làm mới token thất bại');
     }
-  }
-
-  /**
-   * Store token in localStorage
-   */
-  setToken(token: string): void {
-    localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
-  }
-
-  /**
-   * Get token from localStorage
-   */
-  getToken(): string | null {
-    return localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-  }
-
-  /**
-   * Remove token from localStorage
-   */
-  removeToken(): void {
-    localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
-  }
-
-  /**
-   * Check if user is authenticated
-   */
-  isAuthenticated(): boolean {
-    return !!this.getToken();
   }
 }
 

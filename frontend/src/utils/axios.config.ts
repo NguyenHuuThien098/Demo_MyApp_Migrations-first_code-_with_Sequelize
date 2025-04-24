@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { STORAGE_KEYS, API_BASE_URL, API_ENDPOINTS } from './apiConfig';
+import { API_BASE_URL, API_ENDPOINTS } from './apiConfig';
 
 // Tạo một instance Axios với các cài đặt mặc định
 const axiosInstance = axios.create({
@@ -10,14 +10,21 @@ const axiosInstance = axios.create({
   withCredentials: true // Đảm bảo cookies được gửi với mọi request
 });
 
+// Token used for authenticated requests - stored in memory
+let inMemoryToken: string | null = null;
+
+// Function to set the token from outside (typically from AuthContext)
+export const setAuthToken = (token: string | null) => {
+  inMemoryToken = token;
+  console.log('Auth token updated in axios instance');
+};
+
 // Thêm interceptor cho request để tự động gắn token xác thực
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-    
-    // Nếu token tồn tại, thêm vào header của mọi request
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Use token from memory instead of localStorage
+    if (inMemoryToken) {
+      config.headers.Authorization = `Bearer ${inMemoryToken}`;
     }
     
     return config;
@@ -58,8 +65,14 @@ axiosInstance.interceptors.response.use(
           const newToken = response.data.data.token;
           console.log("Token đã được làm mới thành công!");
           
-          // Lưu token mới vào localStorage
-          localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, newToken);
+          // Update the in-memory token
+          setAuthToken(newToken);
+          
+          // Trigger an auth state update event
+          const tokenRefreshEvent = new CustomEvent('token-refreshed', { 
+            detail: { token: newToken }
+          });
+          window.dispatchEvent(tokenRefreshEvent);
           
           // Cập nhật token trong header và thử lại request ban đầu
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
@@ -75,9 +88,12 @@ axiosInstance.interceptors.response.use(
           console.error('Chi tiết lỗi từ server:', refreshError.response.data);
         }
         
-        // Nếu không thể làm mới token, xóa token hiện tại và đăng xuất
-        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
-        localStorage.removeItem(STORAGE_KEYS.USER);
+        // Clear the in-memory token
+        setAuthToken(null);
+        
+        // Trigger an auth state update event for logout
+        const logoutEvent = new CustomEvent('auth-logout');
+        window.dispatchEvent(logoutEvent);
         
         // Chuyển hướng người dùng đến trang đăng nhập
         window.location.href = '/login';
