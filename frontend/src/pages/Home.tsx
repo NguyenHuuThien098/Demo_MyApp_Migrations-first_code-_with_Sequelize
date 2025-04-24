@@ -8,7 +8,6 @@ import {
   InputAdornment,
   Paper,
   Card,
-  CardMedia,
   CardContent,
   CardActions,
   CircularProgress,
@@ -397,7 +396,7 @@ const Home: React.FC = () => {
                     <Box>
                       <Typography gutterBottom>Khoảng giá</Typography>
                       <Slider
-                        value={[minPrice === '' ? 0 : minPrice, maxPrice === '' ? 1000 : maxPrice]}
+                        value={[minPrice === '' ? 0 : minPrice, maxPrice === '' ? 100000 : maxPrice]}
                         onChange={(e, newValue) => {
                           const [newMin, newMax] = newValue as number[];
                           setMinPrice(newMin);
@@ -462,7 +461,7 @@ const Home: React.FC = () => {
                 justifyContent: 'flex-start'
               }}>
                 {products.map((product) => {
-                  // Tính số lượng còn lại
+                  // Tính số lượng còn lại của quantity
                   const availableQuantity = getAvailableQuantity(product);
 
                   return (

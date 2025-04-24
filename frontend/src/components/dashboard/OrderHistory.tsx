@@ -25,7 +25,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 // In production, this would come from an API call
 const orderHistory = [
   {
-    id: 'ORD-2025-001',
+    id: '1',
     date: '2025-04-20',
     status: 'Đã giao hàng',
     total: 125.95,
@@ -37,7 +37,7 @@ const orderHistory = [
     ]
   },
   {
-    id: 'ORD-2025-002',
+    id: '2',
     date: '2025-04-15',
     status: 'Đang giao hàng',
     total: 89.99,
@@ -48,7 +48,7 @@ const orderHistory = [
     ]
   },
   {
-    id: 'ORD-2025-003',
+    id: '3',
     date: '2025-04-10',
     status: 'Đã hủy',
     total: 55.50,
